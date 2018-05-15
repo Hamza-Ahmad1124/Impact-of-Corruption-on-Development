@@ -34,7 +34,6 @@ globals
   temp5
   temp6
   temp7
-  temp8
   x_count
   y_count
   RLstart
@@ -45,10 +44,14 @@ to setup
   clear-all
   setup-patches          ;; Creating Patches
   setup-traffic_lights
-  setup-zebra_crossing
+
+  if (corruption = 0)
+  [
+    setup-zebra_crossing
+  ]
   setup-roadlines
   setup-pedestrians      ;; Creating Pedestrians
-  ;setup-cars
+  setup-cars
   setup-houses
   setup-pedestrian_crossing
   setup-industries
@@ -79,7 +82,7 @@ to go
     construct-houses
   ]
 
-  if (ticks mod 30 = 0 and (temp8 != (count industries * 4)))
+  if (ticks mod 30 = 0); and (temp8 != (count industries * 4)))
   [
     construct-industries
   ]
@@ -90,10 +93,10 @@ end
 
 to setup-patches
 
-  if (corruption = 0)
-  [
-    ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
+  ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
+  ifelse (corruption <= 25)
+  [
     ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
     ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
     ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
@@ -103,23 +106,35 @@ to setup-patches
     ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
     ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
     ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
-
-    ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
-
-    ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
-
-    ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
-
-    ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-    ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
   ]
+
+  [
+    ask patches with [pycor = 13 ] [set pcolor grey + 1]
+    ask patches with [pycor = 17 ] [set pcolor grey + 1]
+    ask patches with [pycor = -13] [set pcolor grey + 1]
+    ask patches with [pycor = -17] [set pcolor grey + 1]
+
+    ask patches with [pxcor = 26 ] [set pcolor grey + 1]
+    ask patches with [pxcor = 30 ] [set pcolor grey + 1]
+    ask patches with [pxcor = -26] [set pcolor grey + 1]
+    ask patches with [pxcor = -30] [set pcolor grey + 1]
+  ]
+
+  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
+
+  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+
+  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
+
+  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
 
 end
 
@@ -309,7 +324,7 @@ to setup-pedestrians
   [
     set shape "person"
     set size 2
-    set color black ; brown + 1
+    set color brown - 1
   ]
 
   while [counter < (count lights + count zebras + count lines + No_of_Pedestrians)]    ;; Only dealing with pedestrians
@@ -473,7 +488,27 @@ to setup-houses
 
     if (corruption = 0)
     [
+      set category one-of [4 5 6]
+    ]
+
+    if (corruption = 25)
+    [
       set category one-of [3 4 5 6]
+    ]
+
+    if (corruption = 50)
+    [
+      set category one-of [2 3 4 5 6]
+    ]
+
+    if (corruption = 75)
+    [
+      set category one-of [1 2 3 4 5 6]
+    ]
+
+    if (corruption = 100)
+    [
+      set category one-of [1 2 3 4]
     ]
   ]
 
@@ -1584,7 +1619,7 @@ to setup-industries
     set hidden? true
     set size 7
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
-    set shape "factory"
+    set shape "factory 1"
   ]
 
   industrying-scheme
@@ -1665,7 +1700,7 @@ end
 
 to construct-industries
 
-  let industryBuilding array:from-list ["factory part 1" "factory part 2" "factory part 3" "factory"]
+  let industryBuilding array:from-list ["factory part 1" "factory part 2" "factory part 3" "factory 1" "factory 2" "factory 3" "factory 4"]
 
   set counter (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes)
 
@@ -1673,10 +1708,14 @@ to construct-industries
   [
     ask industry counter
     [
-       if (temporary <= 3)
+       if (temporary <= 6)
        [
          set shape array:item industryBuilding temporary
-         set temp8 temp8 + 1
+       ]
+
+       if (temporary >= 7)
+       [
+         set temporary 2
        ]
 
        set hidden? false
@@ -1745,9 +1784,9 @@ SLIDER
 corruption
 corruption
 0
-5
-0.0
-1
+100
+25.0
+25
 1
 NIL
 HORIZONTAL
@@ -2011,7 +2050,59 @@ Circle -16777216 true false 60 75 60
 Circle -16777216 true false 180 75 60
 Polygon -16777216 true false 150 168 90 184 62 210 47 232 67 244 90 220 109 205 150 198 192 205 210 220 227 242 251 229 236 206 212 183
 
-factory
+factory 1
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Rectangle -7500403 true true 14 228 78 270
+
+factory 2
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Rectangle -7500403 true true 14 228 78 270
+
+factory 3
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Circle -1 true false 96 21 42
+Circle -1 true false 105 40 32
+Rectangle -7500403 true true 14 228 78 270
+
+factory 4
 false
 0
 Rectangle -7500403 true true 76 194 285 270
