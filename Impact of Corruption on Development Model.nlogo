@@ -54,7 +54,7 @@ to setup
   setup-zebra_crossing
   setup-roadlines
   setup-pedestrians      ;; Creating Pedestrians
-  ;setup-cars
+  setup-cars
   setup-houses
   setup-pedestrian_crossing
   setup-industries
@@ -115,16 +115,16 @@ to setup-patches
 
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
-;  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
-;
-;  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
-;
+  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
+
+  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
+  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
+
 ;  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
 ;  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
 ;  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
@@ -646,21 +646,24 @@ to move-pedestrians
         [
           if (limit_crossing = 0)
           [
-          ; print 1
             turn_pedestrian counter
-            set limit_crossing 1
+            set limit_crossing 2
           ]
 
           forward 0.1
         ]
 
         [
-          ;print 2
           if (limit_crossing = 0)
           [
             turn_pedestrian counter
             set limit_crossing 1
             forward 0
+          ]
+
+          if (limit_crossing = 2)
+          [
+            forward 0.1
           ]
         ]
       ]
@@ -774,9 +777,7 @@ to turn_pedestrian [pedes_who]
       ]
     ]
 
-;   type "pedes_who " type pedes_who type " old heading " type heading
     set heading new_heading
-;   type " new heading " print heading
   ]
 
 end
@@ -1790,12 +1791,12 @@ to building-roads
   [
     ask patches with [(pycor = 15 or pycor = 16 or pycor = 14) and pxcor = array:item xpos rprog ]
     [
-      set pcolor grey - 1
+      set pcolor grey + 1
     ]
 
     ask patches with [(pycor = -15 or pycor = -16 or pycor = -14) and pxcor = array:item xpos rprog ]
     [
-      set pcolor grey - 1
+      set pcolor grey + 1
     ]
   ]
 
@@ -1803,12 +1804,12 @@ to building-roads
   [
     ask patches with [(pxcor = 27 or pxcor = 28 or pxcor = 29) and pycor = array:item ypos rprog ]
     [
-      set pcolor grey - 1
+      set pcolor grey + 1
     ]
 
     ask patches with [(pxcor = -27 or pxcor = -28 or pxcor = -29) and pycor = array:item ypos rprog ]
     [
-      set pcolor grey - 1
+      set pcolor grey + 1
     ]
   ]
   set rprog rprog + 1
@@ -1868,7 +1869,7 @@ No_of_Cars
 No_of_Cars
 5
 20
-5.0
+20.0
 1
 1
 NIL
@@ -1883,7 +1884,7 @@ No_of_Pedestrians
 No_of_Pedestrians
 1
 30
-20.0
+30.0
 1
 1
 NIL
@@ -1915,7 +1916,7 @@ No_of_Houses
 No_of_Houses
 1
 132
-4.0
+132.0
 1
 1
 NIL
@@ -1930,7 +1931,7 @@ No_of_Industries
 No_of_Industries
 1
 24
-21.0
+24.0
 1
 1
 NIL
@@ -1979,6 +1980,32 @@ progress
 progress
 "only houses" "only industries" "houses and industries" "road network"
 0
+
+SWITCH
+93
+362
+241
+395
+upgrade_houses
+upgrade_houses
+1
+1
+-1000
+
+SLIDER
+131
+441
+303
+474
+corruption
+corruption
+0
+100
+0.0
+25
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
