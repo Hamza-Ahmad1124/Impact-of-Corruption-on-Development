@@ -14,7 +14,6 @@ industries-own [temporary]
 pedestrians-own
 [
   turn_value
-  restrict_turns
   limit_crossing
 ]
 
@@ -33,7 +32,15 @@ globals
   temp4
   temp5
   temp6
+
   temp7
+  temp8
+
+  which
+  xpos
+  ypos
+  rprog
+
   x_count
   y_count
   RLstart
@@ -44,26 +51,22 @@ to setup
   clear-all
   setup-patches          ;; Creating Patches
   setup-traffic_lights
-
-  if (corruption = 0)
-  [
-    setup-zebra_crossing
-  ]
+  setup-zebra_crossing
   setup-roadlines
   setup-pedestrians      ;; Creating Pedestrians
-  setup-cars
+  ;setup-cars
   setup-houses
   setup-pedestrian_crossing
   setup-industries
   ;;setup-persons        ;; Creating Persons
+  setup-positions
   reset-ticks
 
 end
 
 to go
 
-  move-pedestrians    ;; Make the Pedestrian Move on the pavement
-  move-cars
+  building-roads
 
   blink-traffic_lights_crossing
 
@@ -82,12 +85,29 @@ to go
     construct-houses
   ]
 
-  if (ticks mod 30 = 0); and (temp8 != (count industries * 4)))
+  if (ticks mod 30 = 0 and (temp8 != (count industries * 3)))
   [
     construct-industries
   ]
 
+  if (ticks mod 5 = 0)
+  [
+    working-industries
+  ]
+
   tick
+
+end
+
+to go-pedestrians
+
+  move-pedestrians    ;; Make the Pedestrian Move on the pavement
+
+end
+
+to go-cars
+
+  move-cars
 
 end
 
@@ -95,46 +115,31 @@ to setup-patches
 
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
-  ifelse (corruption <= 25)
-  [
-    ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
-
-    ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
-    ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
-  ]
-
-  [
-    ask patches with [pycor = 13 ] [set pcolor grey + 1]
-    ask patches with [pycor = 17 ] [set pcolor grey + 1]
-    ask patches with [pycor = -13] [set pcolor grey + 1]
-    ask patches with [pycor = -17] [set pcolor grey + 1]
-
-    ask patches with [pxcor = 26 ] [set pcolor grey + 1]
-    ask patches with [pxcor = 30 ] [set pcolor grey + 1]
-    ask patches with [pxcor = -26] [set pcolor grey + 1]
-    ask patches with [pxcor = -30] [set pcolor grey + 1]
-  ]
-
-  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
-
-  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
-
-  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
-
-  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
+;
+;  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
+;
+;  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
 
 end
 
@@ -324,7 +329,7 @@ to setup-pedestrians
   [
     set shape "person"
     set size 2
-    set color brown - 1
+    set color black ; brown + 1
   ]
 
   while [counter < (count lights + count zebras + count lines + No_of_Pedestrians)]    ;; Only dealing with pedestrians
@@ -480,36 +485,13 @@ end
 
 to setup-houses
 
-  create-houses 132
+  create-houses No_of_Houses
   [
     set size 5
     set hidden? true
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
 
-    if (corruption = 0)
-    [
-      set category one-of [4 5 6]
-    ]
-
-    if (corruption = 25)
-    [
-      set category one-of [3 4 5 6]
-    ]
-
-    if (corruption = 50)
-    [
-      set category one-of [2 3 4 5 6]
-    ]
-
-    if (corruption = 75)
-    [
-      set category one-of [1 2 3 4 5 6]
-    ]
-
-    if (corruption = 100)
-    [
-      set category one-of [1 2 3 4]
-    ]
+    set category one-of [3 4 5 6]
   ]
 
   housing-scheme
@@ -546,7 +528,7 @@ to housing-scheme
 
   set counter (count lights + count zebras + count lines + count pedestrians + count cars)
   set temp 0
-  let values count houses
+  let values 132
 
   while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses)]
   [
@@ -662,11 +644,10 @@ to move-pedestrians
 
         ifelse (pedestrian_signal counter)
         [
-          if (restrict_turns != 2 and limit_crossing = 0)
+          if (limit_crossing = 0)
           [
           ; print 1
             turn_pedestrian counter
-            set restrict_turns 2
             set limit_crossing 1
           ]
 
@@ -675,10 +656,9 @@ to move-pedestrians
 
         [
           ;print 2
-          if (restrict_turns = 0 and limit_crossing = 0)
+          if (limit_crossing = 0)
           [
             turn_pedestrian counter
-            set restrict_turns 2
             set limit_crossing 1
             forward 0
           ]
@@ -812,7 +792,6 @@ to reset-values [pedes_who]
     )
 
     [
-      set restrict_turns 0
       set limit_crossing 0
     ]
   ]
@@ -1614,12 +1593,11 @@ end
 
 to setup-industries
 
-  create-industries 24
+  create-industries No_of_Industries
   [
     set hidden? true
     set size 7
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
-    set shape "factory 1"
   ]
 
   industrying-scheme
@@ -1628,11 +1606,11 @@ end
 
 to industrying-scheme
 
-  let x_pos array:from-list [35.5 43 50.5] ;[34 40 46 52]
-  let y_pos array:from-list [28 22 9 3 -3 -9 -22 -28] ;[30 25 20 10 5 0 -5 -10 -19 -24 -29]
-  let X_positions array:from-list n-values (count industries) [0]
-  let Y_positions array:from-list n-values (count industries)[0]
-  let Checker array:from-list n-values (count industries)[-1]
+  let x_pos array:from-list [35.5 43 50.5]
+  let y_pos array:from-list [28 22 9 3 -3 -9 -22 -28]
+  let X_positions array:from-list n-values 24 [0]
+  let Y_positions array:from-list n-values 24 [0]
+  let Checker array:from-list n-values 24 [-1]
 
   set temp 0
   set temp2 0
@@ -1656,7 +1634,7 @@ to industrying-scheme
   set counter (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes)
   set temp 0
 
-  let values count industries
+  let values 24
 
   while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes + count industries)]
   [
@@ -1700,7 +1678,7 @@ end
 
 to construct-industries
 
-  let industryBuilding array:from-list ["factory part 1" "factory part 2" "factory part 3" "factory 1" "factory 2" "factory 3" "factory 4"]
+  let industryBuilding array:from-list ["factory part 1" "factory part 2" "factory part 3"]
 
   set counter (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes)
 
@@ -1708,14 +1686,10 @@ to construct-industries
   [
     ask industry counter
     [
-       if (temporary <= 6)
+       if (temporary <= 2)
        [
          set shape array:item industryBuilding temporary
-       ]
-
-       if (temporary >= 7)
-       [
-         set temporary 2
+         set temp8 temp8 + 1
        ]
 
        set hidden? false
@@ -1729,6 +1703,115 @@ to construct-industries
   [
     set temp7 temp7 + 1
   ]
+
+end
+
+to working-industries
+
+  let workingBuilding array:from-list ["factory smoke 0" "factory smoke 1" "factory smoke 2" "factory smoke 3" "factory smoke 4"]
+
+  set counter (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes)
+
+  while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses + count checks_xes + count industries)]
+  [
+    ask industry counter
+    [
+       if (temporary >= 3 and temporary <= 7)
+       [
+         set shape array:item workingBuilding (temporary - 3)
+         set temporary temporary + 1
+       ]
+
+       if (temporary > 7)
+       [
+         set temporary 3
+       ]
+    ]
+
+    set counter counter + 1
+  ]
+
+end
+
+to setup-positions
+
+  set xpos array:from-list n-values 111 [-100]
+  set ypos array:from-list n-values 63  [-100]
+  let xpositions -55
+  let ypositions -31
+  let xindex 0
+  let yindex 0
+
+  while [xpositions <= 55]
+  [
+    array:set xpos xindex xpositions
+    set xindex xindex + 1
+    set xpositions xpositions + 1
+  ]
+
+  while [ypositions <= 31]
+  [
+    array:set ypos yindex ypositions
+    set yindex yindex + 1
+    set ypositions ypositions + 1
+  ]
+
+end
+
+to building-roads
+
+;  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
+;
+;  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
+;  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
+;
+;  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
+;
+;  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+;  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+
+  if(rprog < 111)
+  [
+    ask patches with [(pycor = 15 or pycor = 16 or pycor = 14) and pxcor = array:item xpos rprog ]
+    [
+      set pcolor grey - 1
+    ]
+
+    ask patches with [(pycor = -15 or pycor = -16 or pycor = -14) and pxcor = array:item xpos rprog ]
+    [
+      set pcolor grey - 1
+    ]
+  ]
+
+  if (rprog < 63)
+  [
+    ask patches with [(pxcor = 27 or pxcor = 28 or pxcor = 29) and pycor = array:item ypos rprog ]
+    [
+      set pcolor grey - 1
+    ]
+
+    ask patches with [(pxcor = -27 or pxcor = -28 or pxcor = -29) and pycor = array:item ypos rprog ]
+    [
+      set pcolor grey - 1
+    ]
+  ]
+  set rprog rprog + 1
 
 end
 @#$#@#$#@
@@ -1760,10 +1843,10 @@ ticks
 30.0
 
 BUTTON
-55
-104
-118
-137
+84
+17
+147
+50
 NIL
 setup
 NIL
@@ -1777,25 +1860,10 @@ NIL
 1
 
 SLIDER
-67
-164
-239
-197
-corruption
-corruption
-0
-100
-25.0
-25
-1
-NIL
-HORIZONTAL
-
-SLIDER
-69
-216
-241
-249
+83
+119
+255
+152
 No_of_Cars
 No_of_Cars
 5
@@ -1807,10 +1875,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-67
-270
-239
-303
+81
+173
+253
+206
 No_of_Pedestrians
 No_of_Pedestrians
 1
@@ -1822,10 +1890,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-159
-106
-222
-139
+174
+18
+237
+51
 NIL
 go
 T
@@ -1836,6 +1904,80 @@ NIL
 NIL
 NIL
 NIL
+0
+
+SLIDER
+81
+216
+253
+249
+No_of_Houses
+No_of_Houses
+1
+132
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+80
+260
+252
+293
+No_of_Industries
+No_of_Industries
+1
+24
+21.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+66
+68
+180
+101
+NIL
+go-pedestrians
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
+BUTTON
+195
+69
+268
+102
+NIL
+go-cars
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
+CHOOSER
+83
+306
+252
+351
+progress
+progress
+"only houses" "only industries" "houses and industries" "road network"
 0
 
 @#$#@#$#@
@@ -2050,78 +2192,6 @@ Circle -16777216 true false 60 75 60
 Circle -16777216 true false 180 75 60
 Polygon -16777216 true false 150 168 90 184 62 210 47 232 67 244 90 220 109 205 150 198 192 205 210 220 227 242 251 229 236 206 212 183
 
-factory 1
-false
-0
-Rectangle -7500403 true true 76 194 285 270
-Rectangle -7500403 true true 36 95 59 231
-Rectangle -16777216 true false 90 210 270 240
-Line -7500403 true 90 195 90 255
-Line -7500403 true 120 195 120 255
-Line -7500403 true 150 195 150 240
-Line -7500403 true 180 195 180 255
-Line -7500403 true 210 210 210 240
-Line -7500403 true 240 210 240 240
-Line -7500403 true 90 225 270 225
-Circle -1 true false 37 73 32
-Rectangle -7500403 true true 14 228 78 270
-
-factory 2
-false
-0
-Rectangle -7500403 true true 76 194 285 270
-Rectangle -7500403 true true 36 95 59 231
-Rectangle -16777216 true false 90 210 270 240
-Line -7500403 true 90 195 90 255
-Line -7500403 true 120 195 120 255
-Line -7500403 true 150 195 150 240
-Line -7500403 true 180 195 180 255
-Line -7500403 true 210 210 210 240
-Line -7500403 true 240 210 240 240
-Line -7500403 true 90 225 270 225
-Circle -1 true false 37 73 32
-Circle -1 true false 55 38 54
-Rectangle -7500403 true true 14 228 78 270
-
-factory 3
-false
-0
-Rectangle -7500403 true true 76 194 285 270
-Rectangle -7500403 true true 36 95 59 231
-Rectangle -16777216 true false 90 210 270 240
-Line -7500403 true 90 195 90 255
-Line -7500403 true 120 195 120 255
-Line -7500403 true 150 195 150 240
-Line -7500403 true 180 195 180 255
-Line -7500403 true 210 210 210 240
-Line -7500403 true 240 210 240 240
-Line -7500403 true 90 225 270 225
-Circle -1 true false 37 73 32
-Circle -1 true false 55 38 54
-Circle -1 true false 96 21 42
-Circle -1 true false 105 40 32
-Rectangle -7500403 true true 14 228 78 270
-
-factory 4
-false
-0
-Rectangle -7500403 true true 76 194 285 270
-Rectangle -7500403 true true 36 95 59 231
-Rectangle -16777216 true false 90 210 270 240
-Line -7500403 true 90 195 90 255
-Line -7500403 true 120 195 120 255
-Line -7500403 true 150 195 150 240
-Line -7500403 true 180 195 180 255
-Line -7500403 true 210 210 210 240
-Line -7500403 true 240 210 240 240
-Line -7500403 true 90 225 270 225
-Circle -1 true false 37 73 32
-Circle -1 true false 55 38 54
-Circle -1 true false 96 21 42
-Circle -1 true false 105 40 32
-Circle -1 true false 129 19 42
-Rectangle -7500403 true true 14 228 78 270
-
 factory part 1
 false
 0
@@ -2162,6 +2232,93 @@ Line -7500403 true 180 195 180 255
 Line -7500403 true 210 210 210 240
 Line -7500403 true 240 210 240 240
 Line -7500403 true 90 225 270 225
+Rectangle -7500403 true true 14 228 78 270
+
+factory smoke 0
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Rectangle -7500403 true true 14 228 78 270
+
+factory smoke 1
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Rectangle -7500403 true true 14 228 78 270
+
+factory smoke 2
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Rectangle -7500403 true true 14 228 78 270
+
+factory smoke 3
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Circle -1 true false 96 21 42
+Circle -1 true false 105 40 32
+Rectangle -7500403 true true 14 228 78 270
+
+factory smoke 4
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Circle -1 true false 96 21 42
+Circle -1 true false 105 40 32
+Circle -1 true false 129 19 42
 Rectangle -7500403 true true 14 228 78 270
 
 fish
