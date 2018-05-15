@@ -3,7 +3,6 @@ extensions [array]
 breed [lights light]
 breed [zebras zebra]
 breed [lines line]
-breed [persons person]
 breed [checks_xes check_x]
 breed [houses house]
 breed [cars car]
@@ -25,6 +24,9 @@ pedestrians-own
 [
   turn_value
   limit_crossing
+  pedestrian_exception
+  pedestrian_exception2
+  pedestrian_exception3
 ]
 
 houses-own
@@ -92,6 +94,8 @@ to setup
   setup-pedestrian_crossing
   setup-industries
   setup-positions
+  set pedestrian_follow 1
+  set car_follow 1
   reset-ticks
 
 end
@@ -916,7 +920,11 @@ to reset-values [pedes_who]
 
     [
       set limit_crossing 0
-      set car_exception 0
+      ;set car_exception 0
+
+      set pedestrian_exception 0
+      set pedestrian_exception2 0
+      set pedestrian_exception3 0
     ]
   ]
 
@@ -940,11 +948,95 @@ to-report pedestrian_signal [pedes_who]
 
   if (temp_value = 1)
   [
+    ask pedestrian pedes_who
+    [
+      ifelse (pedestrian_exception = 0)
+      [
+        if (corruption = 25)
+        [
+          ifelse (random 4 = 0)
+          [
+            set temp_value -1
+            set pedestrian_exception 1
+          ]
+
+          [
+            set pedestrian_exception 2
+          ]
+        ]
+
+        if (corruption = 50)
+        [
+          ifelse (random 4 = 0 or random 4 = 1)
+          [
+            set temp_value -1
+            set pedestrian_exception 1
+          ]
+
+          [
+            set pedestrian_exception 2
+          ]
+        ]
+
+        if (corruption = 75)
+        [
+          ifelse (random 4 = 0 or random 4 = 1 or random 4 = 2)
+          [
+            set temp_value -1
+            set pedestrian_exception 1
+          ]
+
+          [
+            set pedestrian_exception 2
+          ]
+        ]
+      ]
+
+      [
+        if (pedestrian_exception = 1)
+        [
+          set temp_value -1
+        ]
+      ]
+    ]
+
+    if (temp_value = -1)
+    [
+      ask pedestrian pedes_who
+      [
+        if (pedestrian_exception3 = 0)
+        [
+          set pedestrian_violation pedestrian_violation + 1
+          set pedestrian_exception3 1
+        ]
+      ]
+
+      report true
+    ]
+
+    ask pedestrian pedes_who
+    [
+      if (pedestrian_exception2 = 0)
+      [
+        set pedestrian_follow pedestrian_follow + 1
+        set pedestrian_exception2 1
+      ]
+    ]
+
     report false
   ]
 
   if (temp_value = 2)
   [
+    ask pedestrian pedes_who
+    [
+      if (pedestrian_exception2 = 0)
+      [
+        set pedestrian_follow pedestrian_follow + 1
+        set pedestrian_exception2 1
+      ]
+    ]
+
     report true
   ]
 
@@ -2117,13 +2209,11 @@ to-report cars-pedestrians-patience [car_who]
       [
         if ((ycor = 14 or ycor = -12 or ycor = 18 or ycor = -16) and ((xcor < 30 and xcor > 26) or (xcor > -30 and xcor < -26)))
         [
-          print "up"
           set tempp 1
         ]
 
         if ((xcor = 26 or xcor = -26 or xcor = 30 or xcor = -30) and ((ycor < 18 and ycor > 14) or (ycor > -16 and ycor < -12)))
         [
-          print "down"
           set tempp 1
         ]
       ]
@@ -2142,13 +2232,13 @@ to-report cars-pedestrians-patience [car_who]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-414
+443
 10
-1322
-530
+1494
+611
 -1
 -1
-8.11111111111111
+9.4
 1
 10
 1
@@ -2244,7 +2334,7 @@ CHOOSER
 show_progress
 show_progress
 "none" "only houses" "only industries" "houses and industries" "road network" "all"
-0
+3
 
 SLIDER
 220
@@ -2255,7 +2345,7 @@ corruption
 corruption
 0
 75
-25.0
+75.0
 25
 1
 NIL
@@ -2270,7 +2360,7 @@ no_of_pedestrians
 no_of_pedestrians
 4
 30
-10.0
+30.0
 1
 1
 NIL
@@ -2285,17 +2375,17 @@ no_of_cars
 no_of_cars
 1
 30
-1.0
+30.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-106
-183
-194
-228
+5
+167
+93
+212
 NIL
 no-of-houses
 17
@@ -2303,10 +2393,10 @@ no-of-houses
 11
 
 MONITOR
+108
+168
 209
-184
-310
-229
+213
 NIL
 no-of-industries
 17
@@ -2314,10 +2404,10 @@ no-of-industries
 11
 
 MONITOR
-136
-252
-219
-297
+221
+145
+304
+190
 NIL
 car_violation
 17
@@ -2325,15 +2415,109 @@ car_violation
 11
 
 MONITOR
-189
-356
-259
-401
+325
+145
+395
+190
 NIL
 car_follow
 17
 1
 11
+
+MONITOR
+4
+221
+129
+266
+NIL
+pedestrian_violation
+17
+1
+11
+
+MONITOR
+137
+221
+248
+266
+NIL
+pedestrian_follow
+17
+1
+11
+
+PLOT
+44
+276
+204
+396
+plot 1
+time
+% of cars violating rules
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot (car_violation * 100) / car_follow"
+
+PLOT
+226
+280
+386
+400
+plot 2
+time
+pedestrian violation of rules in %
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot (pedestrian_violation * 100) / pedestrian_follow"
+
+PLOT
+37
+415
+197
+535
+plot 3
+time
+% houses
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot (no-of-houses * 100) / 132"
+
+PLOT
+221
+417
+381
+537
+plot 4
+time
+% of industries
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot (no-of-industries * 100) / 24"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -3214,6 +3398,65 @@ NetLogo 6.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="2800"/>
+    <metric>((car_violation * 100) / car_follow)</metric>
+    <metric>((pedestrian_violation * 100) / pedestrian_follow)</metric>
+    <metric>((no-of-houses * 100) / 132)</metric>
+    <metric>((no-of-industries * 100) / 24)</metric>
+    <enumeratedValueSet variable="no_of_cars">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="corruption" first="0" step="25" last="75"/>
+    <enumeratedValueSet variable="show_progress">
+      <value value="&quot;houses and industries&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="no_of_pedestrians">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="2800"/>
+    <metric>((car_violation * 100) / car_follow)</metric>
+    <metric>((pedestrian_violation * 100) / pedestrian_follow)</metric>
+    <metric>((no-of-houses * 100) / 132)</metric>
+    <metric>((no-of-industries * 100) / 24)</metric>
+    <enumeratedValueSet variable="no_of_cars">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="corruption" first="0" step="25" last="75"/>
+    <enumeratedValueSet variable="show_progress">
+      <value value="&quot;houses and industries&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="no_of_pedestrians">
+      <value value="20"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="2800"/>
+    <metric>((car_violation * 100) / car_follow)</metric>
+    <metric>((pedestrian_violation * 100) / pedestrian_follow)</metric>
+    <metric>((no-of-houses * 100) / 132)</metric>
+    <metric>((no-of-industries * 100) / 24)</metric>
+    <enumeratedValueSet variable="no_of_cars">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="corruption" first="0" step="25" last="75"/>
+    <enumeratedValueSet variable="show_progress">
+      <value value="&quot;houses and industries&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="no_of_pedestrians">
+      <value value="30"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
