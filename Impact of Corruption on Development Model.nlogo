@@ -1,28 +1,37 @@
 breed [persons person]
 breed [pedestrians pedestrian]
-globals [ counter ]
-Breed [cars car]
+breed [cars car]
+breed [lights light]
 extensions [array]
+globals
+[
+  counter
+  temp
+  temp2
+]
 
 to setup
   clear-all
-  setup-patches        ;; Creating Patches
   setup-persons        ;; Creating Persons
   setup-pedestrians    ;; Creating Pedestrians
-
+  setup-cars
+  setup-traffic_lights
+  setup-patches        ;; Creating Patches
   reset-ticks
 end
 
 to go
 
   move-pedestrians    ;; Make the Pedestrian Move on the pavement
-
+  move-cars
   tick
 
 end
 
 to setup-patches
 
+if (corruption = 0 and extremist = 5)
+[
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
   ask patches with [pycor = 13] [set pcolor grey - 1]    ;; Creating Pavement
@@ -43,7 +52,6 @@ to setup-patches
   ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
   ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
 
-
   ask patches with [pxcor = 27] [set pcolor grey + 1]    ;; Creating Road
   ask patches with [pxcor = 28] [set pcolor grey + 1]    ;; Creating Road
   ask patches with [pxcor = 29] [set pcolor grey + 1]    ;; Creating Road
@@ -51,6 +59,7 @@ to setup-patches
   ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
   ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
   ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+]
 
 end
 
@@ -66,9 +75,54 @@ to setup-persons
 
 end
 
+to setup-traffic_lights
+  ;;ask patches with [pycor = 14 and pxcor = 31] [set pcolor red]
+  create-lights 16
+
+  ask lights
+  [
+    set color red
+    set shape "rectangle"
+    set size 4
+  ]
+
+  ask light 59 [ setxy -31 15.8   set heading 0  ]
+
+  ask light 60 [ setxy -27.2 18   set heading 90 ]
+
+  ask light 61 [ setxy -25 14.2   set heading 0  ]
+
+  ask light 62 [ setxy -28.8 12   set heading 90 ]
+
+  ask light 63 [ setxy 25 15.8    set heading 0  ]
+
+  ask light 64 [ setxy 28.8 18    set heading 90 ]
+
+  ask light 65 [ setxy 31 14.2    set heading 0  ]
+
+  ask light 66 [ setxy 27.2 12    set heading 90 ]
+
+  ask light 67 [ setxy -31 -14.2  set heading 0  ]
+
+  ask light 68 [ setxy -27.2 -12  set heading 90 ]
+
+  ask light 69 [ setxy -25 -15.8  set heading 0  ]
+
+  ask light 70 [ setxy -28.8 -18  set heading 90 ]
+
+  ask light 71 [ setxy 25 -14.2   set heading 0  ]
+
+  ask light 72 [ setxy 28.8 -12   set heading 90 ]
+
+  ask light 73 [ setxy 31 -15.8   set heading 0  ]
+
+  ask light 74 [ setxy 27.2 -18   set heading 90 ]
+
+end
+
 to setup-pedestrians
 
-   create-pedestrians 12    ;; Creating Pedestrians
+   create-pedestrians 4    ;; Creating Pedestrians
 
     let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
     let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
@@ -84,7 +138,7 @@ to setup-pedestrians
 
    loop
    [
-      ifelse counter >= 50 and counter < 62    ;; Only dealing with pedestrians
+      ifelse counter >= 50 and counter < 54    ;; Only dealing with pedestrians
       [
         ask pedestrian counter
         [
@@ -92,11 +146,13 @@ to setup-pedestrians
           [
             setxy array:item x random 4 random-ycor   ;; setting value of x and y cordinate for specific pedestrians
             facexy xcor random-ycor          ;; making pedestrians to face specific location for directed movement
+            set ycor precision ycor 1
           ]
 
           [
             setxy random-xcor array:item y random 4
             facexy random-xcor ycor
+            set xcor precision xcor 1
           ]
         ]
       ]
@@ -107,13 +163,15 @@ to setup-pedestrians
 
       set counter counter + 1
    ]
+
 end
 
 to move-pedestrians
 
  ask pedestrians
  [
- forward random-float 0.7
+
+    forward 0.1  ;; move in steps not pixels
  ]
 
  set counter 50
@@ -122,48 +180,97 @@ to move-pedestrians
 
  loop
    [
-      ifelse counter >= 50 and counter < 62
+      ifelse (counter >= 50 and counter < 54)
       [
         ask pedestrian counter
         [
-          if (
+          set xcor precision xcor 1
+          set ycor precision ycor 1
 
-            (xcor < -29 and xcor > -31 and ycor < 19 and ycor > 17 ) or (xcor < -25 and xcor > -27 and ycor < 19 and ycor > 17) or (xcor < -29 and xcor > -31 and ycor < 15 and ycor > 13) or (xcor < -25 and xcor > -27 and ycor < 15 and ycor > 13)
-         or (xcor < -29 and xcor > -31 and ycor < -11 and ycor > -13) or (xcor < -25 and xcor > -27 and ycor < -11 and ycor > -13) or (xcor < -29 and xcor > -31 and ycor < -15 and ycor > -17) or (xcor < -25 and xcor > -27 and ycor < -15 and ycor > -17)
-         or (xcor < 27 and xcor > 25 and ycor < 19 and ycor > 17) or (xcor < 31 and xcor > 29 and ycor < 19 and ycor > 17) or (xcor < 27 and xcor > 25 and ycor < 15 and ycor > 13) or (xcor < 31 and xcor > 29 and ycor < 15 and ycor > 13)
-         or (xcor < 27 and xcor > 25 and ycor < -12 and ycor > -14) or (xcor < 31 and xcor > 29 and ycor < -11 and ycor > -13) or (xcor < 27 and xcor > 25 and ycor < -15 and ycor > -17) or (xcor < 31 and xcor > 29 and ycor < -15 and ycor > -17)
+          if
+          (
+                (xcor = -30.0 and ycor = 18.0 ) or (xcor = -26.0 and ycor =  18.0) or (xcor = -30.0 and ycor =  14.0) or (xcor = -26.0 and ycor =  14.0)
+             or (xcor = -30.0 and ycor = -12.0) or (xcor = -26.0 and ycor = -12.0) or (xcor = -30.0 and ycor = -16.0) or (xcor = -26.0 and ycor = -16.0)
+             or (xcor =  26.0 and ycor =  18.0) or (xcor =  30.0 and ycor =  18.0) or (xcor =  26.0 and ycor =  14.0) or (xcor =  30.0 and ycor =  14.0)
+             or (xcor =  26.0 and ycor = -12.0) or (xcor =  30.0 and ycor = -12.0) or (xcor =  26.0 and ycor = -16.0) or (xcor =  30.0 and ycor = -16.0)
 
-            )
+          )
 
           [
-;            set xcor int xcor
-;            set ycor int ycor
-
-             if ((int xcor = -29) or (int xcor = -25) or (int xcor = 27) or (int xcor = 31))
-             [
-               set xcor int xcor
-               set xcor xcor - 1
-             ]
-             if ( (int xcor = -31) or (int xcor = -27) or (int xcor = 25) or (int xcor = 29))
-             [
-               set xcor int xcor
-               set xcor xcor + 1
-             ]
-
-             if ((int ycor = -11) or (int ycor = -15) or (int ycor = 15) or (int ycor = 19))
-             [
-               set ycor int ycor
-               set ycor ycor - 1
-             ]
-
-             if ((int ycor = -13) or (int ycor = -17) or (int ycor = 13) or (int ycor = 17))
-             [
-               set ycor int ycor
-               set ycor ycor + 1
-             ]
-
             set heading array:item xran random 4
-           ;; print counter type " " type xcor  type " " type ycor
+          ]
+
+        ]
+      ]
+
+      [
+        stop
+      ]
+
+      set counter counter + 1
+   ]
+
+end
+
+to setup-cars
+
+  create-cars 5
+
+    let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
+    let x2 array:from-list [-27.3 28.8]    ;; Array of specific x axis
+    let y1 array:from-list [-14.3 15.8]    ;; Array of specific y axis
+    let y2 array:from-list [-15.8 14.3]    ;; Array of specific y axis
+
+     set counter 54
+
+ ask cars
+  [
+    set shape "car top"
+    set size 2.6
+    set color red
+    setxy random-xcor random-ycor
+    set heading 0
+  ]
+
+   loop
+   [
+      ifelse counter >= 54 and counter < 59
+      [
+        ask car counter
+        [
+          ifelse (random 2 = 0)
+          [
+              ifelse (random 2 = 0)
+              [
+                 setxy array:item x1 random 2 random-ycor
+                ;; facexy xcor 30
+                 set heading 0
+                 set ycor precision ycor 1
+              ]
+
+              [
+                 setxy array:item x2 random 2  random-ycor
+                 ;;facexy xcor -30
+                 set heading 180
+                 set ycor precision ycor 1
+              ]
+          ]
+
+          [
+             ifelse (random 2 = 0)
+             [
+                setxy random-xcor array:item y1 random 2
+                ;;facexy 55 ycor
+                set heading 90
+                set xcor precision xcor 1
+             ]
+
+             [
+                setxy random-xcor array:item y2 random 2
+                ;;facexy -55 ycor
+                set heading 270
+                set xcor precision xcor 1
+             ]
           ]
         ]
       ]
@@ -171,21 +278,227 @@ to move-pedestrians
       [
         stop
       ]
+
       set counter counter + 1
    ]
-End
+end
 
-to setup-cars
+to move-cars
+
+  set counter 54
+
+  loop
+  [
+    ifelse (counter >= 54 and counter <= 58)
+    [
+      ask car counter
+      [
+        ifelse (heading = 0 and (int ycor = 10 or int ycor = -20))
+        [
+          forward 0
+          set temp2 1
+          forward 0.5
+        ]
+
+        [
+          ifelse (heading = 180 and (int ycor = -10 or int ycor = 20))
+          [
+            forward 0
+            set temp2 2
+            forward 0.5
+          ]
+
+          [
+            ifelse (heading = 90 and (int xcor = 23 or int xcor = -33))
+            [
+              forward 0
+              set temp2 3
+              forward 0.5
+            ]
+
+            [
+              ifelse (heading = 270 and (int xcor = 33 or int xcor = -23))
+              [
+                forward 0
+                set temp2 4
+                forward 0.5
+              ]
+
+              [
+                forward 0.5
+              ]
+            ]
+          ]
+        ]
+
+        set xcor precision xcor 1
+        set ycor precision ycor 1
+
+        if
+        (
+            ((heading =  0 or heading = 180) and (int ycor = -14 or int ycor = -15 or int ycor = 14 or int ycor = 15) and (temp2 = 1 or temp2 = 2)) or
+            ((heading = 90 or heading = 270) and (int xcor = -28 or int xcor = -27 or int xcor = 28 or int xcor = 27) and (temp2 = 3 or temp2 = 4))
+        )
+
+        [
+          turn-car (counter)
+        ]
+      ]
+    ]
+
+    [
+        stop
+    ]
+
+    set counter counter + 1
+  ]
+
+end
+
+to turn-car [carwho]
+
+  let direction1 array:from-list [0 90 270]
+  let direction2 array:from-list [0 90 180]
+  let direction3 array:from-list [90 180 270]
+  let direction4 array:from-list [0 180 270]
+
+  ask car carwho
+  [
+    ifelse (heading = 0 and temp2 = 1)
+    [
+      set temp array:item direction1 random 3
+
+      if (temp = 90 and int ycor = -14)
+      [
+        set heading temp
+        set ycor -14.3
+      ]
+
+      if (temp = 90 and int ycor = 15)
+      [
+        set heading temp
+        set ycor 15.8
+      ]
+
+      if (temp = 270 and int ycor = 14)
+      [
+        set heading temp
+        set ycor 14.3
+      ]
+
+      if (temp = 270 and int ycor = -15)
+      [
+        set heading temp
+        set ycor -15.8
+      ]
+    ]
+
+    [
+      ifelse (heading = 90 and temp2 = 3)
+      [
+        set temp array:item direction2 random 3
+
+        if (temp = 0 and int xcor = -28)
+        [
+          set heading temp
+          set xcor -28.8
+        ]
+
+        if (temp = 0 and int xcor = 27)
+        [
+          set heading temp
+          set xcor 27.3
+        ]
+
+        if (temp = 180 and int xcor = -27)
+        [
+          set heading temp
+          set xcor -27.3
+        ]
+
+        if (temp = 180 and int xcor = 28)
+        [
+          set heading temp
+          set xcor 28.8
+        ]
+      ]
+
+      [
+        ifelse (heading = 180 and temp2 = 2)
+        [
+          set temp array:item direction3 random 3
+
+          if (temp = 90 and int ycor = -14)
+          [
+            set heading temp
+            set ycor -14.3
+          ]
+
+          if (temp = 90 and int ycor = 15)
+          [
+            set heading temp
+            set ycor 15.8
+          ]
+
+          if (temp = 270 and int ycor = 14)
+          [
+            set heading temp
+            set ycor 14.3
+          ]
+
+          if (temp = 270 and int ycor = -15)
+          [
+            set heading temp
+            set ycor -15.8
+          ]
+        ]
+
+        [
+          if (heading = 270 and temp2 = 4)
+          [
+            set temp array:item direction4 random 3
+
+            if (temp = 0 and int xcor = -28)
+            [
+              set heading temp
+              set xcor -28.8
+            ]
+
+            if (temp = 0 and int xcor = 27)
+            [
+              set heading temp
+              set xcor 27.3
+            ]
+
+            if (temp = 180 and int xcor = -27)
+            [
+              set heading temp
+              set xcor -27.3
+            ]
+
+            if (temp = 180 and int xcor = 28)
+            [
+              set heading temp
+              set xcor 28.8
+            ]
+          ]
+        ]
+      ]
+    ]
+
+    set temp2 0
+  ]
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-468
+373
 10
-1492
-595
+1471
+618
 -1
 -1
-9.1532
+9.82
 1
 10
 1
@@ -197,19 +510,36 @@ GRAPHICS-WINDOW
 1
 -55
 55
--31
-31
-0
-0
+-30
+30
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-120
-112
-183
-145
+148
+103
+211
+136
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
+BUTTON
+55
+104
+118
+137
 NIL
 setup
 NIL
@@ -222,22 +552,35 @@ NIL
 NIL
 1
 
-BUTTON
-236
-111
-299
-144
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
+SLIDER
+67
+164
+239
+197
+corruption
+corruption
 0
+5
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+72
+218
+244
+251
+extremist
+extremist
+0
+5
+5.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -332,6 +675,21 @@ Polygon -16777216 true false 162 80 132 78 134 135 209 135 194 105 189 96 180 89
 Circle -7500403 true true 47 195 58
 Circle -7500403 true true 195 195 58
 
+car top
+true
+0
+Polygon -7500403 true true 151 8 119 10 98 25 86 48 82 225 90 270 105 289 150 294 195 291 210 270 219 225 214 47 201 24 181 11
+Polygon -16777216 true false 210 195 195 210 195 135 210 105
+Polygon -16777216 true false 105 255 120 270 180 270 195 255 195 225 105 225
+Polygon -16777216 true false 90 195 105 210 105 135 90 105
+Polygon -1 true false 205 29 180 30 181 11
+Line -7500403 false 210 165 195 165
+Line -7500403 false 90 165 105 165
+Polygon -16777216 true false 121 135 180 134 204 97 182 89 153 85 120 89 98 97
+Line -16777216 false 210 90 195 30
+Line -16777216 false 90 90 105 30
+Polygon -1 true false 95 29 120 30 119 11
+
 circle
 false
 0
@@ -392,14 +750,6 @@ Polygon -1 true false 135 195 119 235 95 218 76 210 46 204 60 165
 Polygon -1 true false 75 45 83 77 71 103 86 114 166 78 135 60
 Polygon -7500403 true true 30 136 151 77 226 81 280 119 292 146 292 160 287 170 270 195 195 210 151 212 30 166
 Circle -16777216 true false 215 106 30
-
-flag
-false
-0
-Rectangle -7500403 true true 60 15 75 300
-Polygon -7500403 true true 90 150 270 90 90 30
-Line -7500403 true 75 135 90 135
-Line -7500403 true 75 45 90 45
 
 flower
 false
@@ -468,6 +818,11 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
+rectangle
+true
+0
+Rectangle -7500403 true true 120 90 180 210
+
 sheep
 false
 15
@@ -508,6 +863,24 @@ Circle -16777216 true false 30 30 240
 Circle -7500403 true true 60 60 180
 Circle -16777216 true false 90 90 120
 Circle -7500403 true true 120 120 60
+
+traffic light green
+true
+0
+Rectangle -7500403 true true 150 15 165 300
+Rectangle -7500403 true true 120 15 195 165
+Circle -13840069 false false 120 90 58
+Circle -2674135 false false 120 30 58
+Circle -13840069 true false 120 90 58
+
+traffic light red
+true
+0
+Rectangle -7500403 true true 150 15 165 300
+Rectangle -7500403 true true 120 15 195 165
+Circle -13840069 false false 120 90 58
+Circle -2674135 false false 120 30 58
+Circle -2674135 true false 120 30 58
 
 tree
 false
