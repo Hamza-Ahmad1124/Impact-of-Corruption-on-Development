@@ -12,7 +12,11 @@ breed [pedestrians pedestrian]
 
 industries-own [ temporary ]
 
-cars-own [ speed ]
+cars-own
+[
+  speed
+  turn_value
+]
 
 pedestrians-own
 [
@@ -29,8 +33,10 @@ houses-own
 globals
 [
   counter
+
   temp
   temp2
+
   temp3
   temp4
   temp5
@@ -71,7 +77,7 @@ end
 
 to go
 
-  ifelse (show_progress = "road network" and rprog != 167)
+  ifelse ((show_progress = "road network" or show_progress = "all") and rprog != 167)
   [
     building-roads-pavements
   ]
@@ -92,12 +98,12 @@ to go
     ]
   ]
 
-  if (ticks mod 20 = 0 and temp5 != temp6)
+  if (ticks mod 20 = 0 and temp5 != temp6 and (show_progress = "only houses" or show_progress = "houses and industries" or show_progress = "all"))
   [
     construct-houses
   ]
 
-  if (ticks mod 30 = 0 and (temp8 != (count industries * 3)))
+  if (ticks mod 30 = 0 and (temp8 != (count industries * 3)) and (show_progress = "only industries" or show_progress = "houses and industries" or show_progress = "all"))
   [
     construct-industries
   ]
@@ -127,7 +133,7 @@ to setup-patches
 
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
-  if (show_progress != "road network")
+  if (show_progress = "none" or show_progress = "only houses" or show_progress = "only industries" or show_progress = "houses and industries")
   [
      ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
      ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
@@ -180,7 +186,7 @@ to setup-traffic_lights
     set shape "rectangle"
     set size 4
 
-    if (show_progress = "road network")
+    if (show_progress = "road network" or show_progress = "all")
     [
       set hidden? true
     ]
@@ -229,39 +235,39 @@ to setup-zebra_crossing
     set shape "zebra crossing"
     set size 3
 
-    if (show_progress = "road network")
+    if (show_progress = "road network" or show_progress = "all")
     [
       set hidden? true
     ]
   ]
 
-  ask zebra count lights [ setxy -30 15   set heading 0  ]
+  ask zebra count lights        [ setxy -30 15     set heading 0  ]
 
-  ask zebra (count lights + 1) [ setxy -28 17   set heading 90 ]
+  ask zebra (count lights + 1)  [ setxy -28 17     set heading 90 ]
 
-  ask zebra (count lights + 2) [ setxy -25.9 15   set heading 0  ]
+  ask zebra (count lights + 2)  [ setxy -25.9 15   set heading 0  ]
 
-  ask zebra (count lights + 3) [ setxy -28 12.9   set heading 90 ]
+  ask zebra (count lights + 3)  [ setxy -28 12.9   set heading 90 ]
 
-  ask zebra (count lights + 4) [ setxy 26 15    set heading 0  ]
+  ask zebra (count lights + 4)  [ setxy 26 15      set heading 0  ]
 
-  ask zebra (count lights + 5) [ setxy 28 17    set heading 90 ]
+  ask zebra (count lights + 5)  [ setxy 28 17      set heading 90 ]
 
-  ask zebra (count lights + 6) [ setxy 30.1 15    set heading 0  ]
+  ask zebra (count lights + 6)  [ setxy 30.1 15    set heading 0  ]
 
-  ask zebra (count lights + 7) [ setxy 28 12.9    set heading 90 ]
+  ask zebra (count lights + 7)  [ setxy 28 12.9    set heading 90 ]
 
-  ask zebra (count lights + 8) [ setxy -30 -15  set heading 0  ]
+  ask zebra (count lights + 8)  [ setxy -30 -15    set heading 0  ]
 
-  ask zebra (count lights + 9) [ setxy -28 -13  set heading 90 ]
+  ask zebra (count lights + 9)  [ setxy -28 -13    set heading 90 ]
 
   ask zebra (count lights + 10) [ setxy -25.9 -15  set heading 0  ]
 
   ask zebra (count lights + 11) [ setxy -28 -17.1  set heading 90 ]
 
-  ask zebra (count lights + 12) [ setxy 26 -15   set heading 0  ]
+  ask zebra (count lights + 12) [ setxy 26 -15     set heading 0  ]
 
-  ask zebra (count lights + 13) [ setxy 28 -13   set heading 90 ]
+  ask zebra (count lights + 13) [ setxy 28 -13     set heading 90 ]
 
   ask zebra (count lights + 14) [ setxy 30.1 -15   set heading 0  ]
 
@@ -278,78 +284,73 @@ to setup-roadlines
     set shape "road line"
     set color white
 
-    if (show_progress = "road network")
+    if (show_progress = "road network" or show_progress = "all")
     [
       set hidden? true
     ]
   ]
 
-    set x_count -55
-    set y_count 30
-    set counter (count lights + count zebras)
-    set RLstart (count lights + count zebras)
+  set x_count -55
+  set y_count 30
+  set counter (count lights + count zebras)
+  set RLstart (count lights + count zebras)
 
-    loop
+  while [counter <= RLstart + 55]
+  [
+    ask line counter
     [
-        ifelse (counter <= RLstart + 55)
-        [
-          ask line counter
-          [
-            setxy x_count 15
-            set x_count x_count + 2
-            set heading 0
-          ]
-        ]
-
-        [
-          ifelse (counter <= RLstart + 55 + 56)
-          [
-            ask line counter
-            [
-              set x_count x_count - 2
-              setxy x_count -15
-              set heading 0
-            ]
-          ]
-
-          [
-            ifelse (counter <= RLstart + 55 + 56 + 31)
-            [
-              ask line counter
-              [
-                setxy -28 y_count
-                set y_count y_count - 2
-                set heading 90
-              ]
-            ]
-
-            [
-              ifelse (counter <= RLstart + 55 + 56 + 31 + 31)
-              [
-                ask line counter
-                [
-                  set y_count y_count + 2
-                  setxy 28 y_count
-                  set heading 90
-                ]
-              ]
-
-              [
-                stop
-              ]
-            ]
-          ]
-        ]
-
-      set counter counter + 1
+      setxy x_count 15
+      set x_count x_count + 2
+      set heading 0
     ]
+
+    set counter counter + 1
+  ]
+
+
+  while [counter <= RLstart + 55 + 56]
+  [
+    ask line counter
+    [
+      set x_count x_count - 2
+      setxy x_count -15
+      set heading 0
+    ]
+
+    set counter counter + 1
+  ]
+
+
+  while [counter <= RLstart + 55 + 56 + 31]
+  [
+    ask line counter
+    [
+      setxy -28 y_count
+      set y_count y_count - 2
+      set heading 90
+    ]
+
+    set counter counter + 1
+  ]
+
+
+  while [counter <= RLstart + 55 + 56 + 31 + 31]
+  [
+    ask line counter
+    [
+      set y_count y_count + 2
+      setxy 28 y_count
+      set heading 90
+    ]
+
+    set counter counter + 1
+  ]
 
 end
 
 to setup-pedestrians
 
-  let No_of_pedestrians 0
-  create-pedestrians No_of_Pedestrians      ;; Creating Pedestrians
+  create-pedestrians no_of_pedestrians      ;; Creating Pedestrians
 
   let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
   let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
@@ -397,120 +398,83 @@ to setup-pedestrians
 end
 
 to setup-cars
-  let No_of_Cars 2
-  create-cars No_of_Cars
 
-    let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
-    let x2 array:from-list [-27.3 28.8]    ;; Array of specific x axis
-    let y1 array:from-list [-14.3 15.8]    ;; Array of specific y axis
-    let y2 array:from-list [-15.8 14.3]    ;; Array of specific y axis
+  create-cars no_of_cars
 
-     set counter (count lights + count zebras + count lines + count pedestrians)
+  let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
+  let x2 array:from-list [-27.3 28.8]    ;; Array of specific x axis
+  let y1 array:from-list [-14.3 15.8]    ;; Array of specific y axis
+  let y2 array:from-list [-15.8 14.3]    ;; Array of specific y axis
 
- ask cars
+  set counter (count lights + count zebras + count lines + count pedestrians)
+
+  ask cars
   [
     set shape "car top"
     set size 2.6
     set color blue
-    setxy random-xcor random-ycor
-    set heading 0
-    set speed (random-float 0.5) + 0.1
+   ; set speed (random-float 0.5) + 0.1
+    set speed 0.5
   ]
 
-   loop
-   [
-      ifelse (counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars))
+  while [counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars)]
+  [
+    ask car counter
+    [
+      ifelse (random 2 = 0)
       [
-        ask car counter
-        [
           ifelse (random 2 = 0)
           [
-              ifelse (random 2 = 0)
-              [
-                 setxy array:item x1 random 2 random-ycor
-                 set heading 0
-                 set ycor precision ycor 1
+             setxy array:item x1 random 2 random-ycor
+             set heading 0
+             set ycor precision ycor 1
 
-                 loop
-                 [
-                   ifelse ((ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5))
-                   [
-                     setxy xcor random-ycor
-                   ]
-
-                   [
-                     stop
-                   ]
-                 ]
-              ]
-
-              [
-                 setxy array:item x2 random 2 random-ycor
-                 set heading 180
-                 set ycor precision ycor 1
-
-                 loop
-                 [
-                   ifelse ((ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5))
-                   [
-                     setxy xcor random-ycor
-                   ]
-
-                   [
-                     stop
-                   ]
-                 ]
-              ]
+             while [(ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5)]
+             [
+               setxy xcor random-ycor
+             ]
           ]
 
           [
-             ifelse (random 2 = 0)
+             setxy array:item x2 random 2 random-ycor
+             set heading 180
+             set ycor precision ycor 1
+
+             while [(ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5)]
              [
-                setxy random-xcor array:item y1 random 2
-                set heading 90
-                set xcor precision xcor 1
-
-                loop
-                 [
-                   ifelse ((xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18))
-                   [
-                     setxy random-xcor ycor
-                   ]
-
-                   [
-                     stop
-                   ]
-                ]
-             ]
-
-
-             [
-                setxy random-xcor array:item y2 random 2
-                set heading 270
-                set xcor precision xcor 1
-
-                loop
-                 [
-                   ifelse ((xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18))
-                   [
-                     setxy random-xcor ycor
-                   ]
-
-                   [
-                     stop
-                   ]
-                 ]
+               setxy xcor random-ycor
              ]
           ]
-        ]
       ]
 
       [
-        stop
-      ]
+         ifelse (random 2 = 0)
+         [
+            setxy random-xcor array:item y1 random 2
+            set heading 90
+            set xcor precision xcor 1
 
-      set counter counter + 1
-   ]
+            while [(xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18)]
+            [
+              setxy random-xcor ycor
+            ]
+         ]
+
+         [
+            setxy random-xcor array:item y2 random 2
+            set heading 270
+            set xcor precision xcor 1
+
+            while [(xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18)]
+            [
+              setxy random-xcor ycor
+            ]
+         ]
+      ]
+    ]
+
+    set counter counter + 1
+  ]
 
 end
 
@@ -519,13 +483,52 @@ to setup-houses
   create-houses No_of_Houses
   [
     set size 5
-    set hidden? true
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
-
     set category one-of [3 4 5 6]
+    set hidden? true
   ]
 
   housing-scheme
+
+  if (show_progress = "none" or show_progress = "only industries" or show_progress = "road network")
+  [
+    type show_progress
+    ask houses
+    [
+      set hidden? false
+
+      if (category = 1)
+      [
+        set shape "house"
+      ]
+
+      if (category = 2)
+      [
+        set shape "house efficiency"
+      ]
+
+      if (category = 3)
+      [
+        set shape "house bungalow"
+      ]
+
+      if (category = 4)
+      [
+        set shape "house ranch"
+      ]
+
+      if (category = 5)
+      [
+        set shape "house colonial"
+      ]
+
+      if (category = 6)
+      [
+        set shape "house two story"
+      ]
+    ]
+  ]
+
   set temp6 -1
 
 end
@@ -610,7 +613,7 @@ to setup-pedestrian_crossing
     set shape "x"
     set color black
 
-    if (show_progress = "road network")
+    if (show_progress = "road network" or show_progress = "all")
     [
       set hidden? true
     ]
@@ -914,9 +917,7 @@ to move-cars
 
   set counter (count lights + count zebras + count lines + count pedestrians)
 
-  loop
-  [
-    ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars))
+    while [counter < (count lights + count zebras + count lines + count pedestrians + count cars)]
     [
       ask car counter
       [
@@ -929,10 +930,10 @@ to move-cars
 
           [
             forward 0
-            set speed (random-float 0.5) + 0.1
+            ;set speed (random-float 0.5) + 0.1
           ]
 
-          set temp2 1
+          set turn_value 1
         ]
 
         [
@@ -945,10 +946,10 @@ to move-cars
 
             [
               forward 0
-              set speed (random-float 0.5) + 0.1
+             ; set speed (random-float 0.5) + 0.1
             ]
 
-            set temp2 2
+            set turn_value 2
           ]
 
           [
@@ -961,10 +962,10 @@ to move-cars
 
               [
                 forward 0
-                set speed (random-float 0.5) + 0.1
+                ;set speed (random-float 0.5) + 0.1
               ]
 
-              set temp2 3
+              set turn_value 3
             ]
 
             [
@@ -977,10 +978,10 @@ to move-cars
 
                 [
                   forward 0
-                  set speed (random-float 0.5) + 0.1
+                 ; set speed (random-float 0.5) + 0.1
                 ]
 
-                set temp2 4
+                set turn_value 4
               ]
 
               [
@@ -1002,37 +1003,36 @@ to move-cars
 
         if
         (
-            ((heading =  0 or heading = 180) and (int ycor = -14 or int ycor = -15 or int ycor = 14 or int ycor = 15) and (temp2 = 1 or temp2 = 2)) or
-            ((heading = 90 or heading = 270) and (int xcor = -28 or int xcor = -27 or int xcor = 28 or int xcor = 27) and (temp2 = 3 or temp2 = 4))
+            ((heading =  0 or heading = 180) and (int ycor = -14 or int ycor = -15 or int ycor = 14 or int ycor = 15)) or
+            ((heading = 90 or heading = 270) and (int xcor = -28 or int xcor = -27 or int xcor = 28 or int xcor = 27))
         )
 
         [
           turn-car (counter)
         ]
       ]
-    ]
 
-    [
-        stop
+      set counter counter + 1
     ]
-
-    set counter counter + 1
-  ]
 
 end
 
 to turn-car [carwho]
 
   let direction1 array:from-list [0 90 270]
-  let direction2 array:from-list [0 90 180]
-  let direction3 array:from-list [90 180 270]
+  let direction2 array:from-list [90 180 270]
+  let direction3 array:from-list [0 90 180]
   let direction4 array:from-list [0 180 270]
 
   ask car carwho
   [
-    ifelse (heading = 0 and temp2 = 1)
+    ifelse (heading = 0)
     [
-      set temp array:item direction1 random 3
+      if (turn_value = 1)
+      [
+        set temp array:item direction1 random 3
+        set turn_value 0
+      ]
 
       if (temp = 90 and int ycor = -14)
       [
@@ -1060,9 +1060,13 @@ to turn-car [carwho]
     ]
 
     [
-      ifelse (heading = 90 and temp2 = 3)
+      ifelse (heading = 90)
       [
-        set temp array:item direction2 random 3
+        if (turn_value = 3)
+        [
+          set temp array:item direction3 random 3
+          set turn_value 0
+        ]
 
         if (temp = 0 and int xcor = -28)
         [
@@ -1090,9 +1094,13 @@ to turn-car [carwho]
       ]
 
       [
-        ifelse (heading = 180 and temp2 = 2)
+        ifelse (heading = 180)
         [
-          set temp array:item direction3 random 3
+          if (turn_value = 2)
+          [
+            set temp array:item direction2 random 3
+            set turn_value 0
+          ]
 
           if (temp = 90 and int ycor = -14)
           [
@@ -1120,9 +1128,13 @@ to turn-car [carwho]
         ]
 
         [
-          if (heading = 270 and temp2 = 4)
+          if (heading = 270)
           [
-            set temp array:item direction4 random 3
+            if (turn_value = 4)
+            [
+              set temp array:item direction4 random 3
+              set turn_value 0
+            ]
 
             if (temp = 0 and int xcor = -28)
             [
@@ -1151,8 +1163,6 @@ to turn-car [carwho]
         ]
       ]
     ]
-
-    set temp2 0
   ]
 
 end
@@ -1466,64 +1476,57 @@ to construct-houses
   let category5 array:from-list ["house colonial part 1" "house colonial part 2" "house colonial"]
   let category6 array:from-list ["house two story part 1" "house two story part 2" "house two story part 3" "house two story part 4" "house two story"]
 
-  loop
-  [
-     ifelse (counter <= (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
-     [
-        ask house counter
+   while [counter <= (count lights + count zebras + count lines + count pedestrians + count cars + temp4)]
+   [
+      ask house counter
+      [
+        if (category = 1 and temporary <= 1)
         [
-          if (category = 1 and temporary <= 1)
-          [
-            set shape array:item category1 temporary
-            set temp5 temp5 + 1
-          ]
+          set shape array:item category1 temporary
+          set temp5 temp5 + 1
+        ]
 
-          if (category = 2 and temporary <= 2)
-          [
-            set shape array:item category2 temporary
-            set temp5 temp5 + 1
-          ]
+        if (category = 2 and temporary <= 2)
+        [
+          set shape array:item category2 temporary
+          set temp5 temp5 + 1
+        ]
 
-          if (category = 3 and temporary <= 3)
-          [
-            set shape array:item category3 temporary
-            set temp5 temp5 + 1
-          ]
+        if (category = 3 and temporary <= 3)
+        [
+          set shape array:item category3 temporary
+          set temp5 temp5 + 1
+        ]
 
-          if (category = 4 and temporary <= 2)
-          [
-            set shape array:item category4 temporary
-            set temp5 temp5 + 1
-          ]
+        if (category = 4 and temporary <= 2)
+        [
+          set shape array:item category4 temporary
+          set temp5 temp5 + 1
+        ]
 
-          if (category = 5 and temporary <= 2)
-          [
-            set shape array:item category5 temporary
-            set temp5 temp5 + 1
-          ]
+        if (category = 5 and temporary <= 2)
+        [
+          set shape array:item category5 temporary
+          set temp5 temp5 + 1
+        ]
 
-          if (category = 6 and temporary <= 4)
-          [
-            set shape array:item category6 temporary
-            set temp5 temp5 + 1
-          ]
+        if (category = 6 and temporary <= 4)
+        [
+          set shape array:item category6 temporary
+          set temp5 temp5 + 1
+        ]
 
-          set hidden? false
-          set temporary temporary + 1
-       ]
-     ]
-
-     [
-       if (temp4 < count houses - 1)
-       [
-          set temp4 temp4 + 1
-       ]
-
-       stop
+        set hidden? false
+        set temporary temporary + 1
      ]
 
      set counter counter + 1
-  ]
+   ]
+
+   if (temp4 < count houses - 1)
+   [
+      set temp4 temp4 + 1
+   ]
 
 end
 
@@ -1532,50 +1535,43 @@ to finished-house-construction
   set counter (count lights + count zebras + count lines + count pedestrians + count cars)
   set temp6 0
 
-  loop
-  [
-     ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
-     [
-        ask house counter
+   while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + temp4)]
+   [
+      ask house counter
+      [
+        if (category = 1)
         [
-          if (category = 1)
-          [
-            set temp6 temp6 + 2
-          ]
+          set temp6 temp6 + 2
+        ]
 
-          if (category = 2)
-          [
-            set temp6 temp6 + 3
-          ]
+        if (category = 2)
+        [
+          set temp6 temp6 + 3
+        ]
 
-          if (category = 3)
-          [
-            set temp6 temp6 + 4
-          ]
+        if (category = 3)
+        [
+          set temp6 temp6 + 4
+        ]
 
-          if (category = 4)
-          [
-            set temp6 temp6 + 3
-          ]
+        if (category = 4)
+        [
+          set temp6 temp6 + 3
+        ]
 
-          if (category = 5)
-          [
-            set temp6 temp6 + 3
-          ]
+        if (category = 5)
+        [
+          set temp6 temp6 + 3
+        ]
 
-          if (category = 6)
-          [
-            set temp6 temp6 + 5
-          ]
-       ]
-     ]
-
-     [
-       stop
+        if (category = 6)
+        [
+          set temp6 temp6 + 5
+        ]
      ]
 
      set counter counter + 1
-  ]
+   ]
 
 end
 
@@ -1589,6 +1585,16 @@ to setup-industries
   ]
 
   industrying-scheme
+
+  if (show_progress = "none" or show_progress = "only houses" or show_progress = "road network")
+  [
+    ask industries
+    [
+      set hidden? false
+      set temporary 3
+      set shape "factory part 3"
+    ]
+  ]
 
 end
 
@@ -1748,7 +1754,7 @@ end
 
 to building-roads-pavements
 
-  ifelse (rprog < 111)
+  if (rprog < 111)
   [
     ask patches with [(pycor = 15 or pycor = 16 or pycor = 14) and pxcor = array:item xpos rprog ]
     [
@@ -1761,25 +1767,18 @@ to building-roads-pavements
     ]
   ]
 
-  [
-     ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
-
-     ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
-  ]
-
   if (rprog > 55 and rprog < 167)
   [
     ask patches with [(pycor = 13 or pycor = 17 or pycor = -13 or pycor = -17) and pxcor = array:item xpos (rprog - 56) ]
     [
-      set pcolor grey - 1
+      if ((pxcor <= 26 or pxcor >= 30) and (pxcor <= -30 or pxcor >= -26))
+      [
+        set pcolor grey - 1
+      ]
     ]
   ]
 
-  ifelse (rprog < 63)
+  if (rprog < 63)
   [
     ask patches with [(pxcor = 27 or pxcor = 28 or pxcor = 29) and pycor = array:item ypos rprog ]
     [
@@ -1792,21 +1791,14 @@ to building-roads-pavements
     ]
   ]
 
-  [
-     ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
-
-     ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-     ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
-  ]
-
   if (rprog > 31 and rprog < 95)
   [
     ask patches with [(pxcor = 26 or pxcor = 30 or pxcor = -26 or pxcor = -30) and pycor = array:item ypos (rprog - 32)]
     [
-      set pcolor grey - 1
+      if ((pycor <= 13 or pycor >= 17) and (pycor <= -17 or pycor >= -13))
+      [
+        set pcolor grey - 1
+      ]
     ]
   ]
 
@@ -1955,7 +1947,7 @@ CHOOSER
 show_progress
 show_progress
 "none" "only houses" "only industries" "houses and industries" "road network" "all"
-4
+0
 
 SWITCH
 96
@@ -1976,9 +1968,39 @@ SLIDER
 corruption
 corruption
 0
-100
+75
 0.0
 25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+85
+260
+257
+293
+no_of_pedestrians
+no_of_pedestrians
+4
+30
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+83
+305
+255
+338
+no_of_cars
+no_of_cars
+4
+30
+4.0
+1
 1
 NIL
 HORIZONTAL
