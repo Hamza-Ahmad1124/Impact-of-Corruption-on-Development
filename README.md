@@ -22,8 +22,6 @@ There is a chooser in the model that changes what the model shows and how the mo
 - If corruption is set to 25 then city gets almost 75% developed and 75% of the pedestrians and cars follow the rules.
 - If corruption is set to 50 then city gets almost 50% developed and 50% of the pedestrians and cars follow the rules.
 - If corruption is set to 75 then city gets almost 25% developed and 25% of the pedestrians and cars follow the rules.
- 
-The model does not use data from external sources. There are no sub models in this model.
 
 ## Conclusion
 From the results generated, it is concluded that by increasing the corruption in any type of governing system whatsoever, development of the country or city gets seized and citizens stop following the rules.
