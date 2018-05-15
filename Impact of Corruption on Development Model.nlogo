@@ -16,6 +16,9 @@ cars-own
 [
   speed
   turn_value
+  car_exception
+  car_exception2
+  car_exception3
 ]
 
 pedestrians-own
@@ -45,7 +48,6 @@ globals
   temp7
   temp8
 
-  which
   xpos
   ypos
   rprog
@@ -55,21 +57,40 @@ globals
   x_count
   y_count
   RLstart
+
+  no-of-houses       ; Varible for Monitor
+  no-of-industries   ; Varible for Monitor
+
+  car_violation
+  car_follow
+
+  pedestrian_violation
+  pedestrian_follow
+
 ]
 
 to setup
 
   clear-all
   setup-patches          ;; Creating Patches
+
   setup-traffic_lights
-  setup-zebra_crossing
-  setup-roadlines
+
+  if (corruption = 0 or corruption = 25)
+  [
+    setup-zebra_crossing
+  ]
+
+  if (corruption != 75)
+  [
+    setup-roadlines
+  ]
+
   setup-pedestrians      ;; Creating Pedestrians
   setup-cars
   setup-houses
   setup-pedestrian_crossing
   setup-industries
-  ;;setup-persons        ;; Creating Persons
   setup-positions
   reset-ticks
 
@@ -112,6 +133,11 @@ to go
   [
     working-industries
   ]
+
+;  if (corruption != 0)
+;  [
+;    cars-pedestrians-patience
+;  ]
 
   tick
 
@@ -160,18 +186,6 @@ to setup-patches
      ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
      ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
      ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
-  ]
-
-end
-
-to setup-persons
-
-  create-persons 50
-  ask persons
-  [
-  ;;  setxy random-xcor random-ycor
-    set shape "person"    ;; Setting shape of turtles to person
-    set size 1.7
   ]
 
 end
@@ -361,7 +375,7 @@ to setup-pedestrians
   [
     set shape "person"
     set size 2
-    set color black ; brown + 1
+    set color yellow - 1;orange - 2;brown - 1 ;black
   ]
 
   while [counter < (count lights + count zebras + count lines + No_of_Pedestrians)]    ;; Only dealing with pedestrians
@@ -412,9 +426,9 @@ to setup-cars
   [
     set shape "car top"
     set size 2.6
-    set color blue
+    set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink] ;blue
    ; set speed (random-float 0.5) + 0.1
-    set speed 0.5
+    set speed 0.3
   ]
 
   while [counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars)]
@@ -479,12 +493,80 @@ to setup-cars
 end
 
 to setup-houses
-  let No_of_houses 2
+
+  let No_of_Houses 1
+  set counter  1
+
+  if (corruption = 0)
+  [
+    set No_of_Houses 132
+  ]
+
+  if (corruption = 25)
+  [
+    while [counter <= 132]
+    [
+      if (random 4 = 0 or random 4 = 1 or random 4 = 2)
+      [
+        set No_of_Houses No_of_Houses + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
+  if (corruption = 50)
+  [
+    while [counter <= 132]
+    [
+      if (random 4 = 0 or random 4 = 1)
+      [
+        set No_of_Houses No_of_Houses + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
+  if (corruption = 75)
+  [
+    while [counter <= 132]
+    [
+      if (random 4 = 0)
+      [
+        set No_of_Houses No_of_Houses + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
   create-houses No_of_Houses
   [
     set size 5
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
-    set category one-of [3 4 5 6]
+
+    if (corruption = 0)
+    [
+      set category one-of [4 5 6]
+    ]
+
+    if (corruption = 25)
+    [
+      set category one-of [3 4 5 6]
+    ]
+
+    if (corruption = 50)
+    [
+      set category one-of [2 3 4 5 6]
+    ]
+
+    if (corruption = 75)
+    [
+      set category one-of [1 2 3 4 5 6]
+      if (category = 1) [ set size 3 ]
+    ]
+
     set hidden? true
   ]
 
@@ -492,7 +574,8 @@ to setup-houses
 
   if (show_progress = "none" or show_progress = "only industries" or show_progress = "road network")
   [
-    type show_progress
+    set no-of-houses count houses
+
     ask houses
     [
       set hidden? false
@@ -833,6 +916,7 @@ to reset-values [pedes_who]
 
     [
       set limit_crossing 0
+      set car_exception 0
     ]
   ]
 
@@ -917,103 +1001,140 @@ to move-cars
 
   set counter (count lights + count zebras + count lines + count pedestrians)
 
-    while [counter < (count lights + count zebras + count lines + count pedestrians + count cars)]
+  while [counter < (count lights + count zebras + count lines + count pedestrians + count cars)]
+  [
+    ask car counter
     [
-      ask car counter
+      reset-variables counter
+
+      ifelse (heading = 0 and (int ycor = 10 or int ycor = -19))
       [
-        ifelse (heading = 0 and (int ycor = 10 or int ycor = -19))
+        ifelse (signal 1 counter)
         [
-          ifelse (signal 1)
+          forward speed
+        ]
+
+        [
+          forward 0
+          ;set speed (random-float 0.5) + 0.1
+        ]
+
+        if (turn_value = 0)
+        [
+          set turn_value 1
+        ]
+      ]
+
+      [
+        ifelse (heading = 180 and (int ycor = -10 or int ycor = 19))
+        [
+          ifelse (signal 2 counter)
           [
             forward speed
           ]
 
           [
             forward 0
-            ;set speed (random-float 0.5) + 0.1
+           ; set speed (random-float 0.5) + 0.1
           ]
 
-          set turn_value 1
+          if (turn_value = 0)
+          [
+            set turn_value 2
+          ]
         ]
 
         [
-          ifelse (heading = 180 and (int ycor = -10 or int ycor = 19))
+          ifelse (heading = 90 and (int xcor = 23 or int xcor = -32))
           [
-            ifelse (signal 2)
+            ifelse (signal 3 counter)
             [
               forward speed
             ]
 
             [
               forward 0
-             ; set speed (random-float 0.5) + 0.1
+              ;set speed (random-float 0.5) + 0.1
             ]
 
-            set turn_value 2
+            if (turn_value = 0)
+            [
+              set turn_value 3
+            ]
           ]
 
           [
-            ifelse (heading = 90 and (int xcor = 23 or int xcor = -32))
+            ifelse (heading = 270 and (int xcor = 32 or int xcor = -23))
             [
-              ifelse (signal 3)
+              ifelse (signal 4 counter)
               [
                 forward speed
               ]
 
               [
                 forward 0
-                ;set speed (random-float 0.5) + 0.1
+               ; set speed (random-float 0.5) + 0.1
               ]
 
-              set turn_value 3
+              if (turn_value = 0)
+              [
+                set turn_value 4
+              ]
             ]
 
             [
-              ifelse (heading = 270 and (int xcor = 32 or int xcor = -23))
+              ifelse (patience counter or cars-pedestrians-patience counter)
               [
-                ifelse (signal 4)
-                [
-                  forward speed
-                ]
-
-                [
-                  forward 0
-                 ; set speed (random-float 0.5) + 0.1
-                ]
-
-                set turn_value 4
+                forward 0
               ]
 
               [
-                ifelse (patience counter)
-                [
-                  forward 0
-                ]
-
-                [
-                  forward speed
-                ]
+                forward speed
               ]
             ]
           ]
         ]
-
-        set xcor precision xcor 1
-        set ycor precision ycor 1
-
-        if
-        (
-            ((heading =  0 or heading = 180) and (int ycor = -14 or int ycor = -15 or int ycor = 14 or int ycor = 15)) or
-            ((heading = 90 or heading = 270) and (int xcor = -28 or int xcor = -27 or int xcor = 28 or int xcor = 27))
-        )
-
-        [
-          turn-car (counter)
-        ]
       ]
 
-      set counter counter + 1
+      set xcor precision xcor 1
+      set ycor precision ycor 1
+
+      if
+      (
+          ((heading =  0 or heading = 180) and (int ycor = -14 or int ycor = -15 or int ycor = 14 or int ycor = 15)) or
+          ((heading = 90 or heading = 270) and (int xcor = -28 or int xcor = -27 or int xcor = 28 or int xcor = 27))
+      )
+
+      [
+        turn-car (counter)
+      ]
     ]
+
+    set counter counter + 1
+  ]
+
+end
+
+to reset-variables [car_who]
+
+  ask car car_who
+  [
+    if ((ycor = -14.3 or ycor = 15.8 or ycor = -15.8 or ycor = 14.3) and (int xcor = 0 or int xcor = -52))
+    [
+      set turn_value 0
+      set car_exception 0
+      set car_exception2 0
+      set car_exception3 0
+    ]
+
+    if ((xcor = -28.8 or xcor = 27.3 or xcor = -27.3 or xcor = 28.8) and (int ycor = 0 or int ycor = 28))
+    [
+      set turn_value 0
+      set car_exception 0
+      set car_exception2 0
+      set car_exception3 0
+    ]
+  ]
 
 end
 
@@ -1031,7 +1152,7 @@ to turn-car [carwho]
       if (turn_value = 1)
       [
         set temp array:item direction1 random 3
-        set turn_value 0
+        set turn_value -1
       ]
 
       if (temp = 90 and int ycor = -14)
@@ -1065,7 +1186,7 @@ to turn-car [carwho]
         if (turn_value = 3)
         [
           set temp array:item direction3 random 3
-          set turn_value 0
+          set turn_value -1
         ]
 
         if (temp = 0 and int xcor = -28)
@@ -1099,7 +1220,7 @@ to turn-car [carwho]
           if (turn_value = 2)
           [
             set temp array:item direction2 random 3
-            set turn_value 0
+            set turn_value -1
           ]
 
           if (temp = 90 and int ycor = -14)
@@ -1133,7 +1254,7 @@ to turn-car [carwho]
             if (turn_value = 4)
             [
               set temp array:item direction4 random 3
-              set turn_value 0
+              set turn_value -1
             ]
 
             if (temp = 0 and int xcor = -28)
@@ -1353,7 +1474,7 @@ to blink-traffic_lights_crossing
 
 end
 
-to-report signal [special]
+to-report signal [special car_who]
 
   let rand array:from-list [3 1 0 2]
 
@@ -1366,15 +1487,6 @@ to-report signal [special]
         set special 0
       ]
     ]
-
-    ifelse (special = 0)
-    [
-      report false
-    ]
-
-    [
-      report true
-    ]
   ]
 
   if (special = 2)
@@ -1385,15 +1497,6 @@ to-report signal [special]
       [
         set special 0
       ]
-    ]
-
-    ifelse (special = 0)
-    [
-      report false
-    ]
-
-    [
-      report true
     ]
   ]
 
@@ -1406,15 +1509,6 @@ to-report signal [special]
         set special 0
       ]
     ]
-
-    ifelse (special = 0)
-    [
-      report false
-    ]
-
-    [
-      report true
-    ]
   ]
 
   if (special = 4)
@@ -1426,15 +1520,99 @@ to-report signal [special]
         set special 0
       ]
     ]
+  ]
 
-    ifelse (special = 0)
+  ifelse (special = 0)
+  [
+    ask car car_who
     [
-      report false
+      ifelse (car_exception = 0)
+      [
+        if (corruption = 25)
+        [
+          ifelse (random 4 = 0)
+          [
+            set special -1
+            set car_exception 1
+          ]
+
+          [
+            set car_exception 2
+          ]
+        ]
+
+        if (corruption = 50)
+        [
+          ifelse (random 4 = 0 or random 4 = 1)
+          [
+            set special -1
+            set car_exception 1
+          ]
+
+          [
+            set car_exception 2
+          ]
+        ]
+
+        if (corruption = 75)
+        [
+          ifelse (random 4 = 0 or random 4 = 1 or random 4 = 2)
+          [
+            set special -1
+            set car_exception 1
+          ]
+
+          [
+            set car_exception 2
+          ]
+        ]
+      ]
+
+      [
+        if (car_exception = 1)
+        [
+          set special -1
+        ]
+      ]
     ]
 
+    if (special = -1)
     [
+      ask car car_who
+      [
+        if (car_exception3 = 0)
+        [
+          set car_violation car_violation + 1
+          set car_exception3 1
+        ]
+      ]
+
       report true
     ]
+
+    ask car car_who
+    [
+      if (car_exception2 = 0)
+      [
+        set car_follow car_follow + 1
+        set car_exception2 1
+      ]
+    ]
+
+    report false
+  ]
+
+  [
+    ask car car_who
+    [
+      if (car_exception2 = 0)
+      [
+        set car_follow car_follow + 1
+        set car_exception2 1
+      ]
+    ]
+
+    report true
   ]
 
 end
@@ -1484,36 +1662,66 @@ to construct-houses
         [
           set shape array:item category1 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 1)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         if (category = 2 and temporary <= 2)
         [
           set shape array:item category2 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 2)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         if (category = 3 and temporary <= 3)
         [
           set shape array:item category3 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 3)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         if (category = 4 and temporary <= 2)
         [
           set shape array:item category4 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 2)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         if (category = 5 and temporary <= 2)
         [
           set shape array:item category5 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 2)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         if (category = 6 and temporary <= 4)
         [
           set shape array:item category6 temporary
           set temp5 temp5 + 1
+
+          if (temporary = 4)
+          [
+            set no-of-houses no-of-houses + 1
+          ]
         ]
 
         set hidden? false
@@ -1576,7 +1784,54 @@ to finished-house-construction
 end
 
 to setup-industries
-  let No_of_Industries 2
+
+  let No_of_Industries 1
+  set counter  1
+
+  if (corruption = 0)
+  [
+    set No_of_Industries 24
+  ]
+
+  if (corruption = 25)
+  [
+    while [counter <= 24]
+    [
+      if (random 4 = 0 or random 4 = 1 or random 4 = 2)
+      [
+        set No_of_Industries No_of_Industries + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
+  if (corruption = 50)
+  [
+    while [counter <= 24]
+    [
+      if (random 4 = 0 or random 4 = 1)
+      [
+        set No_of_Industries No_of_Industries + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
+  if (corruption = 75)
+  [
+    while [counter <= 24]
+    [
+      if (random 4 = 0)
+      [
+        set No_of_Industries No_of_Industries + 1
+      ]
+
+      set counter counter + 1
+    ]
+  ]
+
   create-industries No_of_Industries
   [
     set hidden? true
@@ -1588,6 +1843,8 @@ to setup-industries
 
   if (show_progress = "none" or show_progress = "only houses" or show_progress = "road network")
   [
+    set no-of-industries count industries
+
     ask industries
     [
       set hidden? false
@@ -1601,7 +1858,7 @@ end
 to industrying-scheme
 
   let x_pos array:from-list [35.5 43 50.5]
-  let y_pos array:from-list [28 22 9 3 -3 -9 -22 -28]
+  let y_pos array:from-list [28 22 9 3 -3 -9 -21 -27]
   let X_positions array:from-list n-values 24 [0]
   let Y_positions array:from-list n-values 24 [0]
   let Checker array:from-list n-values 24 [-1]
@@ -1684,6 +1941,11 @@ to construct-industries
        [
          set shape array:item industryBuilding temporary
          set temp8 temp8 + 1
+
+         if (temporary = 2)
+         [
+           set no-of-industries no-of-industries + 1
+         ]
        ]
 
        set hidden? false
@@ -1843,6 +2105,41 @@ to setting-up-zebras-lights-lines
   set zllprog zllprog + 1
 
 end
+
+to-report cars-pedestrians-patience [car_who]
+
+  let tempp 0
+  ask car car_who
+  [
+    if any? pedestrians-on neighbors4;patch-ahead 2
+    [
+      ask pedestrians-on neighbors4
+      [
+        if ((ycor = 14 or ycor = -12 or ycor = 18 or ycor = -16) and ((xcor < 30 and xcor > 26) or (xcor > -30 and xcor < -26)))
+        [
+          print "up"
+          set tempp 1
+        ]
+
+        if ((xcor = 26 or xcor = -26 or xcor = 30 or xcor = -30) and ((ycor < 18 and ycor > 14) or (ycor > -16 and ycor < -12)))
+        [
+          print "down"
+          set tempp 1
+        ]
+      ]
+    ]
+  ]
+
+  ifelse (tempp = 1)
+  [
+    report true
+  ]
+
+  [
+    report false
+  ]
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 414
@@ -1872,10 +2169,10 @@ ticks
 30.0
 
 BUTTON
-84
-17
-147
-50
+26
+16
+89
+49
 NIL
 setup
 NIL
@@ -1889,10 +2186,10 @@ NIL
 1
 
 BUTTON
-174
-18
-237
-51
+116
+17
+179
+50
 NIL
 go
 T
@@ -1906,10 +2203,10 @@ NIL
 0
 
 BUTTON
-66
-68
-180
-101
+8
+67
+122
+100
 NIL
 go-pedestrians
 T
@@ -1923,10 +2220,10 @@ NIL
 0
 
 BUTTON
-195
-69
-268
-102
+137
+68
+210
+101
 NIL
 go-cars
 T
@@ -1940,70 +2237,103 @@ NIL
 0
 
 CHOOSER
-86
-122
-255
-167
+17
+114
+186
+159
 show_progress
 show_progress
 "none" "only houses" "only industries" "houses and industries" "road network" "all"
 0
 
-SWITCH
-96
-178
-244
-211
-upgrade_houses
-upgrade_houses
-1
-1
--1000
-
 SLIDER
-84
-218
-256
-251
+220
+16
+392
+49
 corruption
 corruption
 0
 75
-0.0
+25.0
 25
 1
 NIL
 HORIZONTAL
 
 SLIDER
-85
-260
-257
-293
+221
+58
+393
+91
 no_of_pedestrians
 no_of_pedestrians
 4
 30
-4.0
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-83
-305
-255
-338
+219
+103
+391
+136
 no_of_cars
 no_of_cars
-4
+1
 30
-4.0
+1.0
 1
 1
 NIL
 HORIZONTAL
+
+MONITOR
+106
+183
+194
+228
+NIL
+no-of-houses
+17
+1
+11
+
+MONITOR
+209
+184
+310
+229
+NIL
+no-of-industries
+17
+1
+11
+
+MONITOR
+136
+252
+219
+297
+NIL
+car_violation
+17
+1
+11
+
+MONITOR
+189
+356
+259
+401
+NIL
+car_follow
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2860,6 +3190,24 @@ Rectangle -16777216 true false 90 120 195 150
 Rectangle -1 true false 90 150 195 180
 Rectangle -16777216 true false 90 180 195 210
 Rectangle -1 true false 90 210 195 240
+Rectangle -16777216 true false 90 240 195 270
+
+zebra crossing2
+true
+0
+Rectangle -1 true false 90 270 195 300
+Rectangle -1 true false 90 30 195 60
+Rectangle -1 true false 90 90 195 120
+Rectangle -1 true false 90 150 195 180
+Rectangle -1 true false 90 210 195 240
+
+zebra crossing3
+true
+0
+Rectangle -16777216 true false 90 0 195 30
+Rectangle -16777216 true false 90 60 195 90
+Rectangle -16777216 true false 90 120 195 150
+Rectangle -16777216 true false 90 180 195 210
 Rectangle -16777216 true false 90 240 195 270
 @#$#@#$#@
 NetLogo 6.0
