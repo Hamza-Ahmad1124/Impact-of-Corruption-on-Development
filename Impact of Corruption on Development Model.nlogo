@@ -7,6 +7,7 @@ breed [cars car]
 breed [houses house]
 breed [factories factory]
 breed [schools school]
+breed [checks_xes check_x]
 extensions [array]
 cars-own [speed]
 houses-own
@@ -39,6 +40,7 @@ to setup
   setup-pedestrians      ;; Creating Pedestrians
   setup-cars
   setup-houses
+  setup-pedestrian_crossing
   ;;setup-persons        ;; Creating Persons
   reset-ticks
 
@@ -48,7 +50,8 @@ to go
 
   move-pedestrians    ;; Make the Pedestrian Move on the pavement
   move-cars
-  blink-traffic_lights
+
+  blink-traffic_lights_crossing
 
   if (temp4 = count houses)
   [
@@ -506,7 +509,6 @@ to housing-scheme
 
     while [temp2 < 11]
     [
-;     array:set positions counter (word array:item x_pos temp array:item y_pos temp2)
       array:set X_positions counter array:item x_pos temp
       array:set Y_positions counter array:item y_pos temp2
       set counter counter + 1
@@ -557,6 +559,38 @@ to housing-scheme
        ]
     ]
   ]
+
+end
+
+to setup-pedestrian_crossing
+
+  let total (count lights + count zebras + count lines + count pedestrians + count cars + count houses)
+
+  create-checks_xes 16
+  [
+    set shape "x"
+    set color black
+  ]
+
+  ask check_x (total     ) [setxy  -31 18]
+  ask check_x (total +  1) [setxy  -25 18]
+  ask check_x (total +  2) [setxy  -31 12]
+  ask check_x (total +  3) [setxy  -25 12]
+
+  ask check_x (total +  4) [setxy   25 18]
+  ask check_x (total +  5) [setxy   31 18]
+  ask check_x (total +  6) [setxy   25 12]
+  ask check_x (total +  7) [setxy   31 12]
+
+  ask check_x (total +  8) [setxy -31 -12]
+  ask check_x (total +  9) [setxy -25 -12]
+  ask check_x (total + 10) [setxy -31 -18]
+  ask check_x (total + 11) [setxy -25 -18]
+
+  ask check_x (total + 12) [setxy  25 -12]
+  ask check_x (total + 13) [setxy  31 -12]
+  ask check_x (total + 14) [setxy  25 -18]
+  ask check_x (total + 15) [setxy  31 -18]
 
 end
 
@@ -852,7 +886,7 @@ to turn-car [carwho]
 
 end
 
-to blink-traffic_lights
+to blink-traffic_lights_crossing
 
   ifelse (temp3 / 100 <= 1)
   [
@@ -924,31 +958,16 @@ to blink-traffic_lights
     [
       ifelse (temp3 / 100 <= 3)
       [
-        ask light 2
+        ask checks_xes
         [
-          set color lime
-        ]
-
-        ask light 6
-        [
-          set color lime
-        ]
-
-        ask light 10
-        [
-          set color lime
-        ]
-
-        ask light 14
-        [
-          set color lime
+          set shape "check"
         ]
 
         if (temp3 >= 297)
         [
-          ask lights
+          ask checks_xes
           [
-            set color red
+            set shape "x"
           ]
         ]
 
@@ -958,22 +977,22 @@ to blink-traffic_lights
       [
         ifelse (temp3 / 100 <= 4)
         [
-          ask light 3
+          ask light 2
           [
             set color lime
           ]
 
-          ask light 7
+          ask light 6
           [
             set color lime
           ]
 
-          ask light 11
+          ask light 10
           [
             set color lime
           ]
 
-          ask light 15
+          ask light 14
           [
             set color lime
           ]
@@ -990,7 +1009,62 @@ to blink-traffic_lights
         ]
 
         [
-          set temp3 1
+           ifelse (temp3 / 100 <= 5)
+           [
+             ask light 3
+             [
+               set color lime
+             ]
+
+             ask light 7
+             [
+               set color lime
+             ]
+
+             ask light 11
+             [
+               set color lime
+             ]
+
+             ask light 15
+             [
+               set color lime
+             ]
+
+             if (temp3 >= 497)
+             [
+               ask lights
+               [
+                 set color red
+               ]
+             ]
+
+             set temp3 temp3 + 1
+           ]
+
+           [
+             ifelse (temp3 / 100 <= 6)
+             [
+               ask checks_xes
+               [
+                 set shape "check"
+               ]
+
+               if (temp3 >= 597)
+               [
+                 ask checks_xes
+                 [
+                   set shape "x"
+                 ]
+               ]
+
+               set temp3 temp3 + 1
+             ]
+
+             [
+               set temp3 1
+             ]
+           ]
         ]
       ]
     ]
