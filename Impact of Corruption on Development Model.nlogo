@@ -2,14 +2,22 @@ breed [lights light]
 breed [zebras zebra]
 breed [lines line]
 breed [persons person]
+breed [checks_xes check_x]
+breed [houses house]
 breed [pedestrians pedestrian]
 breed [cars car]
-breed [houses house]
 breed [factories factory]
 breed [schools school]
-breed [checks_xes check_x]
 extensions [array]
 cars-own [speed]
+
+pedestrians-own
+[
+  temp_heading
+  restrict_turns
+  restrict_crossing
+]
+
 houses-own
 [
   category
@@ -284,14 +292,12 @@ end
 
 to setup-pedestrians
 
-   create-pedestrians No_of_Pedestrians    ;; Creating Pedestrians
+  create-pedestrians No_of_Pedestrians      ;; Creating Pedestrians
 
-    let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
-    let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
+  let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
+  let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
 
-    set x array:from-list [26 -26 30 -30]
-
-     set counter (count lights + count zebras + count lines)      ;; Making counter to identify pedestrians (using counter as who number)
+  set counter (count lights + count zebras + count lines)      ;; Making counter to identify pedestrians (using counter as who number)
 
   ask pedestrians
   [
@@ -300,57 +306,36 @@ to setup-pedestrians
     set color brown + 1
   ]
 
-   loop
-   [
-      ifelse (counter < (count lights + count zebras + count lines + No_of_Pedestrians))    ;; Only dealing with pedestrians
+  while [counter < (count lights + count zebras + count lines + No_of_Pedestrians)]    ;; Only dealing with pedestrians
+  [
+    ask pedestrian counter
+    [
+      ifelse (random 2 = 0)
       [
-        ask pedestrian counter
+        setxy array:item x random 4 random-ycor   ;; setting value of x and y cordinate for specific pedestrians
+        set heading one-of [0 180]
+        set ycor precision ycor 1
+
+        while [(ycor <= 20 and ycor >= 10) or (ycor <= -10 and ycor >= -20)]
         [
-          ifelse (random 2 = 0)
-          [
-            setxy array:item x random 4 random-ycor   ;; setting value of x and y cordinate for specific pedestrians
-            facexy xcor random-ycor          ;; making pedestrians to face specific location for directed movement
-            set ycor precision ycor 1
-
-            loop
-            [
-              ifelse ((ycor <= 20 and ycor >= 10) or (ycor <= -10 and ycor >= -20))
-              [
-                setxy xcor random-ycor
-              ]
-
-              [
-                stop
-              ]
-            ]
-          ]
-
-          [
-            setxy random-xcor array:item y random 4
-            facexy random-xcor ycor
-            set xcor precision xcor 1
-
-            loop
-            [
-              ifelse ((xcor <= 33 and xcor >= 23) or (xcor <= -23 and xcor >= -33))
-              [
-                setxy random-xcor ycor
-              ]
-
-              [
-                stop
-              ]
-            ]
-          ]
+          setxy xcor random-ycor
         ]
       ]
 
       [
-        stop
-      ]
+        setxy random-xcor array:item y random 4
+        set heading one-of [90 270]
+        set xcor precision xcor 1
 
-      set counter counter + 1
-   ]
+        while [(xcor <= 33 and xcor >= 23) or (xcor <= -23 and xcor >= -33)]
+        [
+          setxy random-xcor ycor
+        ]
+      ]
+    ]
+
+    set counter counter + 1
+  ]
 
 end
 
@@ -596,46 +581,240 @@ end
 
 to move-pedestrians
 
-  ask pedestrians
-  [
-     forward 0.1  ;; move in steps not pixels not patches
-  ]
-
   set counter (count lights + count zebras + count lines)
 
-  let xran array:from-list [90 180 -90 -180]
-
-  loop
+  while [counter < (count lights + count zebras + count lines + count pedestrians)]
   [
-    ifelse (counter < (count lights + count zebras + count lines + count pedestrians))
+    ask pedestrian counter
     [
-      ask pedestrian counter
+      set xcor precision xcor 1
+      set ycor precision ycor 1
+
+      ifelse
+      (
+            (xcor = -30.0 and ycor =  18.0) or (xcor = -26.0 and ycor =  18.0) or (xcor = -30.0 and ycor =  14.0) or (xcor = -26.0 and ycor =  14.0)
+         or (xcor = -30.0 and ycor = -12.0) or (xcor = -26.0 and ycor = -12.0) or (xcor = -30.0 and ycor = -16.0) or (xcor = -26.0 and ycor = -16.0)
+         or (xcor =  26.0 and ycor =  18.0) or (xcor =  30.0 and ycor =  18.0) or (xcor =  26.0 and ycor =  14.0) or (xcor =  30.0 and ycor =  14.0)
+         or (xcor =  26.0 and ycor = -12.0) or (xcor =  30.0 and ycor = -12.0) or (xcor =  26.0 and ycor = -16.0) or (xcor =  30.0 and ycor = -16.0)
+      )
+
       [
-        set xcor precision xcor 1
-        set ycor precision ycor 1
-
-        if
-        (
-              (xcor = -30.0 and ycor = 18.0 ) or (xcor = -26.0 and ycor =  18.0) or (xcor = -30.0 and ycor =  14.0) or (xcor = -26.0 and ycor =  14.0)
-           or (xcor = -30.0 and ycor = -12.0) or (xcor = -26.0 and ycor = -12.0) or (xcor = -30.0 and ycor = -16.0) or (xcor = -26.0 and ycor = -16.0)
-           or (xcor =  26.0 and ycor =  18.0) or (xcor =  30.0 and ycor =  18.0) or (xcor =  26.0 and ycor =  14.0) or (xcor =  30.0 and ycor =  14.0)
-           or (xcor =  26.0 and ycor = -12.0) or (xcor =  30.0 and ycor = -12.0) or (xcor =  26.0 and ycor = -16.0) or (xcor =  30.0 and ycor = -16.0)
-
-        )
-
+        ifelse (pedestrian_signal counter)
         [
-          set heading array:item xran random 4
+          set restrict_turns 1
+          forward 0.1
         ]
 
+        [
+          turn_pedestrian counter
+          forward 0
+        ]
       ]
-    ]
 
-    [
-      stop
+      [
+        reset-crossing-restrictions counter
+
+        ifelse (pedestrian_patience counter)
+        [
+          forward 0.1
+        ]
+
+        [
+          forward 0
+        ]
+      ]
     ]
 
     set counter counter + 1
   ]
+
+end
+
+to reset-crossing-restrictions [pedes_who]
+
+  ask pedestrian pedes_who
+  [
+      if
+      (
+            (xcor = -48 and ycor =  18) or (xcor =   0 and ycor =  18) or (xcor = -48 and ycor =  14) or (xcor =   0 and ycor =  14)
+         or (xcor = -48 and ycor = -12) or (xcor =   0 and ycor = -12) or (xcor = -48 and ycor = -16) or (xcor =   0 and ycor = -16)
+         or (xcor = -30 and ycor =  29) or (xcor = -26 and ycor =  29) or (xcor = -26 and ycor =   0) or (xcor = -30 and ycor =   0)
+         or (xcor =  30 and ycor =  29) or (xcor =  26 and ycor =  29) or (xcor =  26 and ycor =   0) or (xcor =  30 and ycor =   0)
+      )
+
+      [
+        set restrict_crossing 0
+      ]
+  ]
+
+
+end
+
+to turn_pedestrian [pedes_who]
+
+  let xran array:from-list [0 90 180 270]
+
+  let new_heading array:item xran random 4
+
+  ask pedestrian pedes_who
+  [
+    if (restrict_turns = 1)
+    [
+      while [(heading = 0 and new_heading = 180) or (heading = 180 and new_heading = 0) or (heading = 90 and new_heading = 270) or (heading = 270 and new_heading = 90)]
+      [
+        set new_heading array:item xran random 4
+      ]
+
+      set temp_heading heading
+      set heading new_heading
+      set restrict_turns  0
+    ]
+
+    if (temp_heading = 180 and heading = 270 and (xcor = -30 or xcor = 26))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 0 and heading = 270 and (xcor = -30 or xcor = 26))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 180 and heading = 90 and (xcor = -26 or xcor = 30))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 0 and heading = 90 and (xcor = -26 or xcor = 30))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 90 and heading = 0 and (ycor = 18 or ycor = -12))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 90 and heading = 180 and (ycor = 14 or ycor = -16))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 270 and heading = 0 and (ycor = 18 or ycor = -12))
+    [
+      forward 0.1
+    ]
+
+    if (temp_heading = 270 and heading = 180 and (ycor = 14 or ycor = -16))
+    [
+      forward 0.1
+    ]
+  ]
+
+end
+
+to-report pedestrian_signal [pedes_who]
+
+  let temp_value 0
+
+  ask checks_xes
+  [
+    ifelse (shape = "x")
+    [
+       ask pedestrian pedes_who
+       [
+         ifelse (restrict_crossing <= 1)
+         [
+           set restrict_crossing 1
+           set temp_value 1
+         ]
+
+         [
+           set temp_value 2
+         ]
+       ]
+    ]
+
+    [
+       ask pedestrian pedes_who
+       [
+         if (restrict_crossing = 0 or restrict_crossing = 1)
+         [
+           set restrict_crossing 2
+         ]
+       ]
+
+       set temp_value 2
+    ]
+  ]
+
+  if (temp_value = 1)
+  [
+    report false
+  ]
+
+  if (temp_value = 2)
+  [
+    report true
+  ]
+
+end
+
+to-report pedestrian_patience [pedes_who]
+
+  let temp_value 0
+  let temporary_heading -1
+  let temporary_heading2 -1
+
+  if any? pedestrians-on patch-ahead 1
+  [
+    ask pedestrians-on patch-ahead 1
+    [
+      set temporary_heading heading
+      set temporary_heading2 temp_heading
+    ]
+
+    ask pedestrian pedes_who
+    [
+      ifelse
+      (
+        (heading = temporary_heading) or ;(heading = temporary_heading2) or
+        ((temporary_heading  = 0 or temporary_heading  = 90) and (heading = 0 or heading = 90)) or
+        ((temporary_heading  = 0 or temporary_heading  = 270) and (heading = 0 or heading = 270)) or
+        ((temporary_heading  = 90 or temporary_heading  = 180) and (heading = 90 or heading = 180)) or
+        ((temporary_heading  = 180 or temporary_heading  = 270) and (heading = 180 or heading = 270))
+
+
+;        ((temporary_heading  = 90 or temporary_heading  = 270) and (heading = 0 or heading = 180)) or
+;        ((heading = 90 or heading = 270) and (temporary_heading  = 0 or temporary_heading  = 180)) or
+;        ((temporary_heading2 = 90 or temporary_heading2 = 270) and (heading = 0 or heading = 180))   or ((heading = 90 or heading = 270) and (temporary_heading2 = 0 or temporary_heading2 = 180))
+;        ((temporary_heading = 90 or temporary_heading = 270) and heading = 0)   or ((heading = 90 or heading = 270) and temporary_heading = 0)   or
+;        ((temporary_heading = 90 or temporary_heading = 270) and heading = 180) or ((heading = 90 or heading = 270) and temporary_heading = 180) or
+;        ((temporary_heading2 = 90 or temporary_heading2 = 270) and heading = 0)   or ((heading = 90 or heading = 270) and temporary_heading2 = 0)   or
+;        ((temporary_heading2 = 90 or temporary_heading2 = 270) and heading = 180) or ((heading = 90 or heading = 270) and temporary_heading2 = 180)
+      )
+
+      [
+        set temp_value 1
+      ]
+
+      [
+        set temp_value 2
+      ]
+    ]
+
+    if (temp_value = 1)
+    [
+      report false
+    ]
+
+    if (temp_value = 2)
+    [
+      report true
+    ]
+  ]
+
+  report true
 
 end
 
@@ -1389,7 +1568,7 @@ No_of_Cars
 No_of_Cars
 5
 20
-9.0
+5.0
 1
 1
 NIL
@@ -1403,8 +1582,8 @@ SLIDER
 No_of_Pedestrians
 No_of_Pedestrians
 5
-20
-20.0
+30
+15.0
 1
 1
 NIL
