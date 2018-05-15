@@ -433,7 +433,14 @@ to move-cars
               ]
 
               [
-                forward 0.5
+                ifELSE (patience counter)
+                [
+                  forward 0
+                ]
+
+                [
+                  forward 0.5
+                ]
               ]
             ]
           ]
@@ -947,7 +954,29 @@ to-report signal [special]
 
 end
 
-to patience
+to-report patience [counter2]
+
+  ask car counter2
+  [
+    ifelse any? cars-on patch-ahead 2.5
+    [
+      set counter2 0
+    ]
+
+    [
+      set counter2 1
+    ]
+  ]
+
+  if (counter2 = 0)
+  [
+    report true
+  ]
+
+  if (counter2 = 1)
+  [
+    report false
+  ]
 
 end
 @#$#@#$#@
