@@ -1,30 +1,42 @@
-breed [persons person]
-breed [pedestrians pedestrian]
-breed [cars car]
 breed [lights light]
 breed [zebras zebra]
 breed [lines line]
+breed [persons person]
+breed [pedestrians pedestrian]
+breed [cars car]
+breed [houses house]
+breed [factories factory]
+breed [schools school]
 extensions [array]
+cars-own [speed]
+houses-own [category temporary]
 globals
 [
   counter
   temp
   temp2
   temp3
+  temp4
+  temp5
+  temp6
   x_count
   y_count
+  RLstart
 ]
 
 to setup
+
   clear-all
-  setup-persons        ;; Creating Persons
-  setup-pedestrians    ;; Creating Pedestrians
-  setup-cars
+  setup-patches          ;; Creating Patches
   setup-traffic_lights
-  setup-patches        ;; Creating Patches
   setup-zebra_crossing
   setup-roadlines
+  setup-pedestrians      ;; Creating Pedestrians
+  setup-cars
+  setup-houses
+  ;;setup-persons        ;; Creating Persons
   reset-ticks
+
 end
 
 to go
@@ -32,6 +44,20 @@ to go
   move-pedestrians    ;; Make the Pedestrian Move on the pavement
   move-cars
   blink-traffic_lights
+
+  if (temp4 = 40)
+  [
+    finished-house-construction
+    set temp4 -1
+  ]
+
+  if (ticks mod 20 = 0 and temp5 != temp6)
+  [
+    construct-houses
+  ]
+
+  construct-factories
+  construct-schools
   tick
 
 end
@@ -84,7 +110,7 @@ to setup-persons
 end
 
 to setup-traffic_lights
-  ;;ask patches with [pycor = 14 and pxcor = 31] [set pcolor red]
+
   create-lights 16
 
   ask lights
@@ -94,61 +120,177 @@ to setup-traffic_lights
     set size 4
   ]
 
-  ask light 59 [ setxy -31 15.8   set heading 0  ]
+  ask light 0  [ setxy -31 15.8   set heading 0  ]
 
-  ask light 60 [ setxy -27.2 18   set heading 90 ]
+  ask light 1  [ setxy -27.2 18   set heading 90 ]
 
-  ask light 61 [ setxy -25 14.2   set heading 0  ]
+  ask light 2  [ setxy -25 14.2   set heading 0  ]
 
-  ask light 62 [ setxy -28.8 12   set heading 90 ]
+  ask light 3  [ setxy -28.8 12   set heading 90 ]
 
-  ask light 63 [ setxy 25 15.8    set heading 0  ]
+  ask light 4  [ setxy 25 15.8    set heading 0  ]
 
-  ask light 64 [ setxy 28.8 18    set heading 90 ]
+  ask light 5  [ setxy 28.8 18    set heading 90 ]
 
-  ask light 65 [ setxy 31 14.2    set heading 0  ]
+  ask light 6  [ setxy 31 14.2    set heading 0  ]
 
-  ask light 66 [ setxy 27.2 12    set heading 90 ]
+  ask light 7  [ setxy 27.2 12    set heading 90 ]
 
-  ask light 67 [ setxy -31 -14.2  set heading 0  ]
+  ask light 8  [ setxy -31 -14.2  set heading 0  ]
 
-  ask light 68 [ setxy -27.2 -12  set heading 90 ]
+  ask light 9  [ setxy -27.2 -12  set heading 90 ]
 
-  ask light 69 [ setxy -25 -15.8  set heading 0  ]
+  ask light 10 [ setxy -25 -15.8  set heading 0  ]
 
-  ask light 70 [ setxy -28.8 -18  set heading 90 ]
+  ask light 11 [ setxy -28.8 -18  set heading 90 ]
 
-  ask light 71 [ setxy 25 -14.2   set heading 0  ]
+  ask light 12 [ setxy 25 -14.2   set heading 0  ]
 
-  ask light 72 [ setxy 28.8 -12   set heading 90 ]
+  ask light 13 [ setxy 28.8 -12   set heading 90 ]
 
-  ask light 73 [ setxy 31 -15.8   set heading 0  ]
+  ask light 14 [ setxy 31 -15.8   set heading 0  ]
 
-  ask light 74 [ setxy 27.2 -18   set heading 90 ]
+  ask light 15 [ setxy 27.2 -18   set heading 90 ]
+
+end
+
+to setup-zebra_crossing
+
+  create-zebras 16
+
+  ask zebras
+  [
+    set shape "zebra crossing"
+    set size 3
+  ]
+
+  ask zebra count lights [ setxy -30 15   set heading 0  ]
+
+  ask zebra (count lights + 1) [ setxy -28 17   set heading 90 ]
+
+  ask zebra (count lights + 2) [ setxy -25.9 15   set heading 0  ]
+
+  ask zebra (count lights + 3) [ setxy -28 12.9   set heading 90 ]
+
+  ask zebra (count lights + 4) [ setxy 26 15    set heading 0  ]
+
+  ask zebra (count lights + 5) [ setxy 28 17    set heading 90 ]
+
+  ask zebra (count lights + 6) [ setxy 30.1 15    set heading 0  ]
+
+  ask zebra (count lights + 7) [ setxy 28 12.9    set heading 90 ]
+
+  ask zebra (count lights + 8) [ setxy -30 -15  set heading 0  ]
+
+  ask zebra (count lights + 9) [ setxy -28 -13  set heading 90 ]
+
+  ask zebra (count lights + 10) [ setxy -25.9 -15  set heading 0  ]
+
+  ask zebra (count lights + 11) [ setxy -28 -17.1  set heading 90 ]
+
+  ask zebra (count lights + 12) [ setxy 26 -15   set heading 0  ]
+
+  ask zebra (count lights + 13) [ setxy 28 -13   set heading 90 ]
+
+  ask zebra (count lights + 14) [ setxy 30.1 -15   set heading 0  ]
+
+  ask zebra (count lights + 15) [ setxy 28 -17.1   set heading 90 ]
+
+end
+
+to setup-roadlines
+
+  create-lines 174
+
+  ask lines
+  [
+    set shape "road line"
+    set color white
+  ]
+
+    set x_count -55
+    set y_count 30
+    set counter (count lights + count zebras)
+    set RLstart (count lights + count zebras)
+
+    loop
+    [
+        ifelse (counter <= RLstart + 55)
+        [
+          ask line counter
+          [
+            setxy x_count 15
+            set x_count x_count + 2
+            set heading 0
+          ]
+        ]
+
+        [
+          ifelse (counter <= RLstart + 55 + 56)
+          [
+            ask line counter
+            [
+              set x_count x_count - 2
+              setxy x_count -15
+              set heading 0
+            ]
+          ]
+
+          [
+            ifelse (counter <= RLstart + 55 + 56 + 31)
+            [
+              ask line counter
+              [
+                setxy -28 y_count
+                set y_count y_count - 2
+                set heading 90
+              ]
+            ]
+
+            [
+              ifelse (counter <= RLstart + 55 + 56 + 31 + 31)
+              [
+                ask line counter
+                [
+                  set y_count y_count + 2
+                  setxy 28 y_count
+                  set heading 90
+                ]
+              ]
+
+              [
+                stop
+              ]
+            ]
+          ]
+        ]
+
+      set counter counter + 1
+    ]
 
 end
 
 to setup-pedestrians
 
-   create-pedestrians 4    ;; Creating Pedestrians
+   create-pedestrians No_of_Pedestrians    ;; Creating Pedestrians
 
     let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
     let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
 
     set x array:from-list [26 -26 30 -30]
 
-     set counter 50      ;; Making counter to identify pedestrians (using counter as who number)
+     set counter (count lights + count zebras + count lines)      ;; Making counter to identify pedestrians (using counter as who number)
 
- ask pedestrians
+  ask pedestrians
   [
     set shape "person"
     set size 2
-    set color white
+    set color brown + 1
   ]
 
    loop
    [
-      ifelse counter >= 50 and counter < 54    ;; Only dealing with pedestrians
+      ifelse (counter < (count lights + count zebras + count lines + No_of_Pedestrians))    ;; Only dealing with pedestrians
       [
         ask pedestrian counter
         [
@@ -200,62 +342,16 @@ to setup-pedestrians
 
 end
 
-to move-pedestrians
-
- ask pedestrians
- [
-
-    forward 0.1  ;; move in steps not pixels not patches
- ]
-
- set counter 50
-
- let xran array:from-list [90 180 -90 -180]
-
- loop
-   [
-      ifelse (counter >= 50 and counter < 54)
-      [
-        ask pedestrian counter
-        [
-          set xcor precision xcor 1
-          set ycor precision ycor 1
-
-          if
-          (
-                (xcor = -30.0 and ycor = 18.0 ) or (xcor = -26.0 and ycor =  18.0) or (xcor = -30.0 and ycor =  14.0) or (xcor = -26.0 and ycor =  14.0)
-             or (xcor = -30.0 and ycor = -12.0) or (xcor = -26.0 and ycor = -12.0) or (xcor = -30.0 and ycor = -16.0) or (xcor = -26.0 and ycor = -16.0)
-             or (xcor =  26.0 and ycor =  18.0) or (xcor =  30.0 and ycor =  18.0) or (xcor =  26.0 and ycor =  14.0) or (xcor =  30.0 and ycor =  14.0)
-             or (xcor =  26.0 and ycor = -12.0) or (xcor =  30.0 and ycor = -12.0) or (xcor =  26.0 and ycor = -16.0) or (xcor =  30.0 and ycor = -16.0)
-
-          )
-
-          [
-            set heading array:item xran random 4
-          ]
-
-        ]
-      ]
-
-      [
-        stop
-      ]
-
-      set counter counter + 1
-   ]
-
-end
-
 to setup-cars
 
-  create-cars 5
+  create-cars No_of_Cars
 
     let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
     let x2 array:from-list [-27.3 28.8]    ;; Array of specific x axis
     let y1 array:from-list [-14.3 15.8]    ;; Array of specific y axis
     let y2 array:from-list [-15.8 14.3]    ;; Array of specific y axis
 
-     set counter 54
+     set counter (count lights + count zebras + count lines + count pedestrians)
 
  ask cars
   [
@@ -264,11 +360,12 @@ to setup-cars
     set color blue
     setxy random-xcor random-ycor
     set heading 0
+    set speed (random-float 0.5) + 0.1
   ]
 
    loop
    [
-      ifelse counter >= 54 and counter <= 58
+      ifelse (counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars))
       [
         ask car counter
         [
@@ -363,13 +460,70 @@ to setup-cars
 
 end
 
-to move-cars
+to setup-houses
 
-  set counter 54
+  create-houses 40
+  [
+    set size 5
+    setxy random-xcor random-ycor
+    set hidden? true
+  ]
+   set temp6 -1
+
+end
+
+to move-pedestrians
+
+  ask pedestrians
+  [
+     forward 0.1  ;; move in steps not pixels not patches
+  ]
+
+  set counter (count lights + count zebras + count lines)
+
+  let xran array:from-list [90 180 -90 -180]
 
   loop
   [
-    ifelse (counter >= 54 and counter <= 58)
+    ifelse (counter < (count lights + count zebras + count lines + count pedestrians))
+    [
+      ask pedestrian counter
+      [
+        set xcor precision xcor 1
+        set ycor precision ycor 1
+
+        if
+        (
+              (xcor = -30.0 and ycor = 18.0 ) or (xcor = -26.0 and ycor =  18.0) or (xcor = -30.0 and ycor =  14.0) or (xcor = -26.0 and ycor =  14.0)
+           or (xcor = -30.0 and ycor = -12.0) or (xcor = -26.0 and ycor = -12.0) or (xcor = -30.0 and ycor = -16.0) or (xcor = -26.0 and ycor = -16.0)
+           or (xcor =  26.0 and ycor =  18.0) or (xcor =  30.0 and ycor =  18.0) or (xcor =  26.0 and ycor =  14.0) or (xcor =  30.0 and ycor =  14.0)
+           or (xcor =  26.0 and ycor = -12.0) or (xcor =  30.0 and ycor = -12.0) or (xcor =  26.0 and ycor = -16.0) or (xcor =  30.0 and ycor = -16.0)
+
+        )
+
+        [
+          set heading array:item xran random 4
+        ]
+
+      ]
+    ]
+
+    [
+      stop
+    ]
+
+    set counter counter + 1
+  ]
+
+end
+
+to move-cars
+
+  set counter (count lights + count zebras + count lines + count pedestrians)
+
+  loop
+  [
+    ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars))
     [
       ask car counter
       [
@@ -377,11 +531,12 @@ to move-cars
         [
           ifelse (signal 1)
           [
-            forward 0.5
+            forward speed
           ]
 
           [
             forward 0
+            set speed (random-float 0.5) + 0.1
           ]
 
           set temp2 1
@@ -392,11 +547,12 @@ to move-cars
           [
             ifelse (signal 2)
             [
-              forward 0.5
+              forward speed
             ]
 
             [
               forward 0
+              set speed (random-float 0.5) + 0.1
             ]
 
             set temp2 2
@@ -407,11 +563,12 @@ to move-cars
             [
               ifelse (signal 3)
               [
-                forward 0.5
+                forward speed
               ]
 
               [
                 forward 0
+                set speed (random-float 0.5) + 0.1
               ]
 
               set temp2 3
@@ -422,24 +579,25 @@ to move-cars
               [
                 ifelse (signal 4)
                 [
-                  forward 0.5
+                  forward speed
                 ]
 
                 [
                   forward 0
+                  set speed (random-float 0.5) + 0.1
                 ]
 
                 set temp2 4
               ]
 
               [
-                ifELSE (patience counter)
+                ifelse (patience counter)
                 [
                   forward 0
                 ]
 
                 [
-                  forward 0.5
+                  forward speed
                 ]
               ]
             ]
@@ -610,22 +768,22 @@ to blink-traffic_lights
 
   ifelse (temp3 / 100 <= 1)
   [
-    ask light 59
+    ask light 0
     [
       set color lime
     ]
 
-    ask light 63
+    ask light 4
     [
       set color lime
     ]
 
-    ask light 67
+    ask light 8
     [
       set color lime
     ]
 
-    ask light 71
+    ask light 12
     [
       set color lime
     ]
@@ -644,22 +802,22 @@ to blink-traffic_lights
   [
     ifelse (temp3 / 100 <= 2)
     [
-      ask light 60
+      ask light 1
       [
         set color lime
       ]
 
-      ask light 64
+      ask light 5
       [
         set color lime
       ]
 
-      ask light 68
+      ask light 9
       [
         set color lime
       ]
 
-      ask light 72
+      ask light 13
       [
         set color lime
       ]
@@ -678,22 +836,22 @@ to blink-traffic_lights
     [
       ifelse (temp3 / 100 <= 3)
       [
-        ask light 61
+        ask light 2
         [
           set color lime
         ]
 
-        ask light 65
+        ask light 6
         [
           set color lime
         ]
 
-        ask light 69
+        ask light 10
         [
           set color lime
         ]
 
-        ask light 73
+        ask light 14
         [
           set color lime
         ]
@@ -712,22 +870,22 @@ to blink-traffic_lights
       [
         ifelse (temp3 / 100 <= 4)
         [
-          ask light 62
+          ask light 3
           [
             set color lime
           ]
 
-          ask light 66
+          ask light 7
           [
             set color lime
           ]
 
-          ask light 70
+          ask light 11
           [
             set color lime
           ]
 
-          ask light 74
+          ask light 15
           [
             set color lime
           ]
@@ -752,125 +910,9 @@ to blink-traffic_lights
 
 end
 
-to setup-zebra_crossing
-
-  create-zebras 16
-
-  ask zebras
-  [
-    set shape "zebra crossing"
-    set size 3
-  ]
-
-  ask zebra 75 [ setxy -30 15   set heading 0  ]
-
-  ask zebra 76 [ setxy -28 17   set heading 90 ]
-
-  ask zebra 77 [ setxy -26 15   set heading 0  ]
-
-  ask zebra 78 [ setxy -28 13   set heading 90 ]
-
-  ask zebra 79 [ setxy 26 15    set heading 0  ]
-
-  ask zebra 80 [ setxy 28 17    set heading 90 ]
-
-  ask zebra 81 [ setxy 30 15    set heading 0  ]
-
-  ask zebra 82 [ setxy 28 13    set heading 90 ]
-
-  ask zebra 83 [ setxy -30 -15  set heading 0  ]
-
-  ask zebra 84 [ setxy -28 -13  set heading 90 ]
-
-  ask zebra 85 [ setxy -26 -15  set heading 0  ]
-
-  ask zebra 86 [ setxy -28 -17  set heading 90 ]
-
-  ask zebra 87 [ setxy 26 -15   set heading 0  ]
-
-  ask zebra 88 [ setxy 28 -13   set heading 90 ]
-
-  ask zebra 89 [ setxy 30 -15   set heading 0  ]
-
-  ask zebra 90 [ setxy 28 -17   set heading 90 ]
-
-end
-
-to setup-roadlines
-
-  create-lines 174
-
-  ask lines
-  [
-    set shape "road line"
-    set color white
-  ]
-
-    set x_count -55
-    set y_count 30
-    set counter 91
-
-    loop
-    [
-        ifelse (counter <= 91 + 55)
-        [
-          ask line counter
-          [
-            setxy x_count 15
-            set x_count x_count + 2
-            set heading 0
-          ]
-        ]
-
-        [
-          ifelse (counter <= 91 + 55 + 56)
-          [
-            ask line counter
-            [
-              set x_count x_count - 2
-              setxy x_count -15
-              set heading 0
-            ]
-          ]
-
-          [
-            ifelse (counter <= 91 + 55 + 56 + 31)
-            [
-              ask line counter
-              [
-                setxy -28 y_count
-                set y_count y_count - 2
-                set heading 90
-              ]
-            ]
-
-            [
-              ifelse (counter <= 91 + 55 + 56 + 31 + 31)
-              [
-                ask line counter
-                [
-                  set y_count y_count + 2
-                  setxy 28 y_count
-                  set heading 90
-                ]
-              ]
-
-              [
-                stop
-              ]
-            ]
-          ]
-        ]
-
-      set counter counter + 1
-    ]
-
-
-end
-
 to-report signal [special]
 
-  let rand array:from-list [62 60 59 61]
+  let rand array:from-list [3 1 0 2]
 
   if (special = 1)
   [
@@ -979,6 +1021,155 @@ to-report patience [counter2]
   ]
 
 end
+
+to construct-houses
+
+  ifelse (ticks < 1)
+  [
+    set temp4 0
+    set temp5 0
+  ]
+
+  [
+    if (temp4 < 40)
+    [
+      set temp4 temp4 + 1
+    ]
+  ]
+
+  set counter (count lights + count zebras + count lines + count pedestrians + count cars)
+
+  let category1 array:from-list ["house part 1" "house"]
+  let category2 array:from-list ["house efficiency part 1" "house efficiency part 2" "house efficiency"]
+  let category3 array:from-list ["house bungalow part 1" "house bungalow part 2" "house bungalow part 3" "house bungalow"]
+  let category4 array:from-list ["house ranch part 1" "house ranch part 2" "house ranch"]
+  let category5 array:from-list ["house colonial part 1" "house colonial part 2" "house colonial"]
+  let category6 array:from-list ["house two story part 1" "house two story part 2" "house two story part 3" "house two story part 4" "house two story"]
+
+  loop
+  [
+     ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
+     [
+        ask house counter
+        [
+          if (category = 0)
+          [
+            set category (1 + random 6)
+          ]
+
+          if (category = 1 and temporary <= 1)
+          [
+            set shape array:item category1 temporary
+            set temp5 temp5 + 1
+          ]
+
+          if (category = 2 and temporary <= 2)
+          [
+            set shape array:item category2 temporary
+            set temp5 temp5 + 1
+          ]
+
+          if (category = 3 and temporary <= 3)
+          [
+            set shape array:item category3 temporary
+            set temp5 temp5 + 1
+          ]
+
+          if (category = 4 and temporary <= 2)
+          [
+            set shape array:item category4 temporary
+            set temp5 temp5 + 1
+          ]
+
+          if (category = 5 and temporary <= 2)
+          [
+            set shape array:item category5 temporary
+            set temp5 temp5 + 1
+          ]
+
+          if (category = 6 and temporary <= 4)
+          [
+            set shape array:item category6 temporary
+            set temp5 temp5 + 1
+          ]
+
+          set hidden? false
+          set temporary temporary + 1
+       ]
+     ]
+
+     [
+       stop
+     ]
+
+     set counter counter + 1
+  ]
+
+end
+
+to finished-house-construction
+
+  set counter (count lights + count zebras + count lines + count pedestrians + count cars)
+  set temp6 0
+
+  loop
+  [
+     ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
+     [
+        ask house counter
+        [
+          if (category = 1)
+          [
+            set temp6 temp6 + 2
+          ]
+
+          if (category = 2)
+          [
+            set temp6 temp6 + 3
+          ]
+
+          if (category = 3)
+          [
+            set temp6 temp6 + 4
+          ]
+
+          if (category = 4)
+          [
+            set temp6 temp6 + 3
+          ]
+
+          if (category = 5)
+          [
+            set temp6 temp6 + 3
+          ]
+
+          if (category = 6)
+          [
+            set temp6 temp6 + 5
+          ]
+       ]
+     ]
+
+     [
+       stop
+     ]
+
+     set counter counter + 1
+  ]
+
+end
+
+to construct-factories
+
+  let factoryBuilding ["factory part 1" "factory part 2" "factory part 3" "factory"]
+
+end
+
+to construct-schools
+
+
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 373
@@ -1006,23 +1197,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-148
-103
-211
-136
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
 
 BUTTON
 55
@@ -1055,6 +1229,53 @@ corruption
 1
 NIL
 HORIZONTAL
+
+SLIDER
+69
+216
+241
+249
+No_of_Cars
+No_of_Cars
+5
+20
+9.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+67
+270
+239
+303
+No_of_Pedestrians
+No_of_Pedestrians
+5
+20
+20.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+159
+106
+222
+139
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1127,6 +1348,53 @@ Circle -7500403 true true 110 75 80
 Line -7500403 true 150 100 80 30
 Line -7500403 true 150 100 220 30
 
+building institution
+false
+0
+Rectangle -7500403 true true 0 60 300 270
+Rectangle -16777216 true false 130 196 168 256
+Rectangle -16777216 false false 0 255 300 270
+Polygon -7500403 true true 0 60 150 15 300 60
+Polygon -16777216 false false 0 60 150 15 300 60
+Circle -1 true false 135 26 30
+Circle -16777216 false false 135 25 30
+Rectangle -16777216 false false 0 60 300 75
+Rectangle -16777216 false false 218 75 255 90
+Rectangle -16777216 false false 218 240 255 255
+Rectangle -16777216 false false 224 90 249 240
+Rectangle -16777216 false false 45 75 82 90
+Rectangle -16777216 false false 45 240 82 255
+Rectangle -16777216 false false 51 90 76 240
+Rectangle -16777216 false false 90 240 127 255
+Rectangle -16777216 false false 90 75 127 90
+Rectangle -16777216 false false 96 90 121 240
+Rectangle -16777216 false false 179 90 204 240
+Rectangle -16777216 false false 173 75 210 90
+Rectangle -16777216 false false 173 240 210 255
+Rectangle -16777216 false false 269 90 294 240
+Rectangle -16777216 false false 263 75 300 90
+Rectangle -16777216 false false 263 240 300 255
+Rectangle -16777216 false false 0 240 37 255
+Rectangle -16777216 false false 6 90 31 240
+Rectangle -16777216 false false 0 75 37 90
+Line -16777216 false 112 260 184 260
+Line -16777216 false 105 265 196 265
+
+building store
+false
+0
+Rectangle -7500403 true true 30 45 45 240
+Rectangle -16777216 false false 30 45 45 165
+Rectangle -7500403 true true 15 165 285 255
+Rectangle -16777216 true false 120 195 180 255
+Line -7500403 true 150 195 150 255
+Rectangle -16777216 true false 30 180 105 240
+Rectangle -16777216 true false 195 180 270 240
+Line -16777216 false 0 165 300 165
+Polygon -7500403 true true 0 165 45 135 60 90 240 90 255 135 300 165
+Rectangle -7500403 true true 0 0 75 45
+Rectangle -16777216 false false 0 0 75 45
+
 butterfly
 true
 0
@@ -1163,6 +1431,11 @@ Polygon -16777216 true false 121 135 180 134 204 97 182 89 153 85 120 89 98 97
 Line -16777216 false 210 90 195 30
 Line -16777216 false 90 90 105 30
 Polygon -1 true false 95 29 120 30 119 11
+
+check
+false
+0
+Polygon -7500403 true true 55 138 22 155 53 196 72 232 91 288 111 272 136 258 147 220 167 174 208 113 280 24 257 7 192 78 151 138 106 213 87 182
 
 circle
 false
@@ -1216,6 +1489,68 @@ Circle -16777216 true false 60 75 60
 Circle -16777216 true false 180 75 60
 Polygon -16777216 true false 150 168 90 184 62 210 47 232 67 244 90 220 109 205 150 198 192 205 210 220 227 242 251 229 236 206 212 183
 
+factory
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Circle -1 true false 37 73 32
+Circle -1 true false 55 38 54
+Circle -1 true false 96 21 42
+Circle -1 true false 105 40 32
+Circle -1 true false 129 19 42
+Rectangle -7500403 true true 14 228 78 270
+
+factory part 1
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+
+factory part 2
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Rectangle -7500403 true true 14 228 78 270
+
+factory part 3
+false
+0
+Rectangle -7500403 true true 76 194 285 270
+Rectangle -7500403 true true 36 95 59 231
+Rectangle -16777216 true false 90 210 270 240
+Line -7500403 true 90 195 90 255
+Line -7500403 true 120 195 120 255
+Line -7500403 true 150 195 150 240
+Line -7500403 true 180 195 180 255
+Line -7500403 true 210 210 210 240
+Line -7500403 true 240 210 240 240
+Line -7500403 true 90 225 270 225
+Rectangle -7500403 true true 14 228 78 270
+
 fish
 false
 0
@@ -1242,6 +1577,15 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
+flower budding
+false
+0
+Polygon -7500403 true true 135 120 165 165 180 210 180 240 150 300 165 300 195 240 195 195 165 135
+Polygon -7500403 true true 189 233 219 188 249 173 279 188 234 218
+Polygon -7500403 true true 180 255 150 210 105 210 75 240 135 240
+Polygon -7500403 true true 180 150 180 120 165 97 135 84 128 121 147 148 165 165
+Polygon -7500403 true true 170 155 131 163 175 167 196 136
+
 house
 false
 0
@@ -1249,6 +1593,243 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
+
+house bungalow
+false
+0
+Rectangle -7500403 true true 210 75 225 255
+Rectangle -7500403 true true 90 135 210 255
+Rectangle -16777216 true false 165 195 195 255
+Line -16777216 false 210 135 210 255
+Rectangle -16777216 true false 105 202 135 240
+Polygon -7500403 true true 225 150 75 150 150 75
+Line -16777216 false 75 150 225 150
+Line -16777216 false 195 120 225 150
+Polygon -16777216 false false 165 195 150 195 180 165 210 195
+Rectangle -16777216 true false 135 105 165 135
+
+house bungalow part 1
+false
+0
+Rectangle -7500403 true true 90 135 210 255
+Rectangle -16777216 true false 165 195 195 255
+Line -16777216 false 210 135 210 255
+Rectangle -16777216 true false 105 202 135 240
+
+house bungalow part 2
+false
+0
+Rectangle -7500403 true true 210 75 225 255
+Rectangle -7500403 true true 90 135 210 255
+Rectangle -16777216 true false 165 195 195 255
+Line -16777216 false 210 135 210 255
+Rectangle -16777216 true false 105 202 135 240
+
+house bungalow part 3
+false
+0
+Rectangle -7500403 true true 210 75 225 255
+Rectangle -7500403 true true 90 135 210 255
+Rectangle -16777216 true false 165 195 195 255
+Line -16777216 false 210 135 210 255
+Rectangle -16777216 true false 105 202 135 240
+Polygon -16777216 false false 165 195 150 195 180 165 210 195
+
+house colonial
+false
+0
+Rectangle -7500403 true true 270 75 285 255
+Rectangle -7500403 true true 45 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 60 195 105 240
+Rectangle -16777216 true false 60 150 105 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Polygon -7500403 true true 30 135 285 135 240 90 75 90
+Line -16777216 false 30 135 285 135
+Line -16777216 false 255 105 285 135
+Line -7500403 true 154 195 154 255
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 135 150 180 180
+
+house colonial part 1
+false
+0
+Rectangle -7500403 true true 45 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 60 195 105 240
+Rectangle -16777216 true false 60 150 105 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Line -7500403 true 154 195 154 255
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 135 150 180 180
+
+house colonial part 2
+false
+0
+Rectangle -7500403 true true 270 75 285 255
+Rectangle -7500403 true true 45 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 60 195 105 240
+Rectangle -16777216 true false 60 150 105 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Line -7500403 true 154 195 154 255
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 135 150 180 180
+
+house efficiency
+false
+0
+Rectangle -7500403 true true 180 90 195 195
+Rectangle -7500403 true true 90 165 210 255
+Rectangle -16777216 true false 165 195 195 255
+Rectangle -16777216 true false 105 202 135 240
+Polygon -7500403 true true 225 165 75 165 150 90
+Line -16777216 false 75 165 225 165
+
+house efficiency part 1
+false
+0
+Rectangle -7500403 true true 90 165 210 255
+Rectangle -16777216 true false 165 195 195 255
+Rectangle -16777216 true false 105 202 135 240
+
+house efficiency part 2
+false
+0
+Rectangle -7500403 true true 180 90 195 195
+Rectangle -7500403 true true 90 165 210 255
+Rectangle -16777216 true false 165 195 195 255
+Rectangle -16777216 true false 105 202 135 240
+Line -16777216 false 90 165 210 165
+
+house part 1
+false
+0
+Rectangle -7500403 true true 45 120 255 285
+Rectangle -16777216 true false 120 210 180 285
+
+house ranch
+false
+0
+Rectangle -7500403 true true 270 120 285 255
+Rectangle -7500403 true true 15 180 270 255
+Polygon -7500403 true true 0 180 300 180 240 135 60 135 0 180
+Rectangle -16777216 true false 120 195 180 255
+Line -7500403 true 150 195 150 255
+Rectangle -16777216 true false 45 195 105 240
+Rectangle -16777216 true false 195 195 255 240
+Line -7500403 true 75 195 75 240
+Line -7500403 true 225 195 225 240
+Line -16777216 false 270 180 270 255
+Line -16777216 false 0 180 300 180
+
+house ranch part 1
+false
+0
+Rectangle -7500403 true true 15 180 270 255
+Rectangle -16777216 true false 120 195 180 255
+Line -7500403 true 150 195 150 255
+Rectangle -16777216 true false 45 195 105 240
+Rectangle -16777216 true false 195 195 255 240
+Line -7500403 true 75 195 75 240
+Line -7500403 true 225 195 225 240
+Line -16777216 false 270 180 270 255
+
+house ranch part 2
+false
+0
+Rectangle -7500403 true true 270 120 285 255
+Rectangle -7500403 true true 15 180 270 255
+Rectangle -16777216 true false 120 195 180 255
+Line -7500403 true 150 195 150 255
+Rectangle -16777216 true false 45 195 105 240
+Rectangle -16777216 true false 195 195 255 240
+Line -7500403 true 75 195 75 240
+Line -7500403 true 225 195 225 240
+Line -16777216 false 270 180 270 255
+
+house two story
+false
+0
+Polygon -7500403 true true 2 180 227 180 152 150 32 150
+Rectangle -7500403 true true 270 75 285 255
+Rectangle -7500403 true true 75 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 90 150 135 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Rectangle -7500403 true true 15 180 75 255
+Polygon -7500403 true true 60 135 285 135 240 90 105 90
+Line -16777216 false 75 135 75 180
+Rectangle -16777216 true false 30 195 93 240
+Line -16777216 false 60 135 285 135
+Line -16777216 false 255 105 285 135
+Line -16777216 false 0 180 75 180
+Line -7500403 true 60 195 60 240
+Line -7500403 true 154 195 154 255
+
+house two story part 1
+false
+0
+Rectangle -7500403 true true 75 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 90 150 135 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Line -7500403 true 154 195 154 255
+
+house two story part 2
+false
+0
+Rectangle -7500403 true true 75 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 90 150 135 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Rectangle -7500403 true true 15 180 75 255
+Rectangle -16777216 true false 30 195 93 240
+Line -7500403 true 60 195 60 240
+Line -7500403 true 154 195 154 255
+
+house two story part 3
+false
+0
+Rectangle -7500403 true true 270 75 285 255
+Rectangle -7500403 true true 75 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 90 150 135 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Rectangle -7500403 true true 15 180 75 255
+Line -16777216 false 75 135 75 180
+Rectangle -16777216 true false 30 195 93 240
+Line -7500403 true 60 195 60 240
+Line -7500403 true 154 195 154 255
+
+house two story part 4
+false
+0
+Polygon -7500403 true true 2 180 227 180 152 150 32 150
+Rectangle -7500403 true true 270 75 285 255
+Rectangle -7500403 true true 75 135 270 255
+Rectangle -16777216 true false 124 195 187 256
+Rectangle -16777216 true false 210 195 255 240
+Rectangle -16777216 true false 90 150 135 180
+Rectangle -16777216 true false 210 150 255 180
+Line -16777216 false 270 135 270 255
+Rectangle -7500403 true true 15 180 75 255
+Line -16777216 false 75 135 75 180
+Rectangle -16777216 true false 30 195 93 240
+Line -16777216 false 0 180 75 180
+Line -7500403 true 60 195 60 240
+Line -7500403 true 154 195 154 255
 
 leaf
 false
@@ -1280,6 +1861,19 @@ Rectangle -7500403 true true 127 79 172 94
 Polygon -7500403 true true 195 90 240 150 225 180 165 105
 Polygon -7500403 true true 105 90 60 150 75 180 135 105
 
+petals
+false
+0
+Circle -7500403 true true 117 12 66
+Circle -7500403 true true 116 221 67
+Circle -7500403 true true 41 41 67
+Circle -7500403 true true 11 116 67
+Circle -7500403 true true 41 191 67
+Circle -7500403 true true 191 191 67
+Circle -7500403 true true 221 116 67
+Circle -7500403 true true 191 41 67
+Circle -7500403 true true 60 60 180
+
 plant
 false
 0
@@ -1291,6 +1885,24 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+plant medium
+false
+0
+Rectangle -7500403 true true 135 165 165 300
+Polygon -7500403 true true 135 255 90 210 45 195 75 255 135 285
+Polygon -7500403 true true 165 255 210 210 255 195 225 255 165 285
+Polygon -7500403 true true 135 180 90 135 45 120 75 180 135 210
+Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
+Polygon -7500403 true true 135 165 120 120 150 90 180 120 165 165
+
+plant small
+false
+0
+Rectangle -7500403 true true 135 240 165 300
+Polygon -7500403 true true 135 255 90 210 45 195 75 255 135 285
+Polygon -7500403 true true 165 255 210 210 255 195 225 255 165 285
+Polygon -7500403 true true 135 240 120 195 150 165 180 195 165 240
 
 rectangle
 true
@@ -1370,6 +1982,14 @@ Circle -7500403 true true 65 21 108
 Circle -7500403 true true 116 41 127
 Circle -7500403 true true 45 90 120
 Circle -7500403 true true 104 74 152
+
+tree pine
+false
+0
+Rectangle -6459832 true false 120 225 180 300
+Polygon -7500403 true true 150 240 240 270 150 135 60 270
+Polygon -7500403 true true 150 75 75 210 150 195 225 210
+Polygon -7500403 true true 150 7 90 157 150 142 210 157 150 7
 
 triangle
 false
