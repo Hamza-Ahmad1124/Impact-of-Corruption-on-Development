@@ -9,7 +9,12 @@ breed [factories factory]
 breed [schools school]
 extensions [array]
 cars-own [speed]
-houses-own [category temporary]
+houses-own
+[
+  category
+  temporary
+]
+
 globals
 [
   counter
@@ -45,10 +50,14 @@ to go
   move-cars
   blink-traffic_lights
 
-  if (temp4 = 40)
+  if (temp4 = count houses)
   [
     finished-house-construction
-    set temp4 -1
+
+    if (temp5 = temp6)
+    [
+      set temp4 -1
+    ]
   ]
 
   if (ticks mod 20 = 0 and temp5 != temp6)
@@ -64,36 +73,36 @@ end
 
 to setup-patches
 
-if (corruption = 0)
-[
-  ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
+  if (corruption = 0)
+  [
+    ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
-  ask patches with [pycor = 13] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = 17] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
 
-  ask patches with [pxcor = 26] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = 30] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
+    ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
 
-  ask patches with [pycor = 15] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = 16] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = 14] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
 
-  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
 
-  ask patches with [pxcor = 27] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = 28] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = 29] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
 
-  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
-]
+    ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+    ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+  ]
 
 end
 
@@ -462,13 +471,92 @@ end
 
 to setup-houses
 
-  create-houses 40
+  create-houses 132
   [
     set size 5
-    setxy random-xcor random-ycor
     set hidden? true
+    set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
+
+    if (corruption = 0)
+    [
+      set category one-of [3 4 5 6]
+    ]
   ]
-   set temp6 -1
+
+  housing-scheme
+  set temp6 -1
+
+end
+
+to housing-scheme
+
+  let x_pos array:from-list [21 15 9 3 -3 -9 -15 -21 -34 -40 -46 -52]
+  let y_pos array:from-list [30 25 20 10 5 0 -5 -10 -19 -24 -29]
+  let X_positions array:from-list n-values 132[0]
+  let Y_positions array:from-list n-values 132[0]
+  let Checker array:from-list n-values 132[-1]
+
+  set temp 0
+  set temp2 0
+  set counter 0
+
+  while [temp < 12]
+  [
+    set temp2 0
+
+    while [temp2 < 11]
+    [
+;     array:set positions counter (word array:item x_pos temp array:item y_pos temp2)
+      array:set X_positions counter array:item x_pos temp
+      array:set Y_positions counter array:item y_pos temp2
+      set counter counter + 1
+      set temp2 temp2 + 1
+    ]
+
+    set temp temp + 1
+  ]
+
+  set counter (count lights + count zebras + count lines + count pedestrians + count cars)
+  set temp 0
+  let values count houses
+
+  while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses)]
+  [
+    let checker_counter1 (count lights + count zebras + count lines + count pedestrians + count cars)
+    let checker_counter2 0
+    let checker_counter3 counter
+
+    set temp random values
+
+    if (temp = (values - 1))
+    [
+      set values values - 1
+    ]
+
+    while [checker_counter1 <= checker_counter3]
+    [
+       ifelse ((array:item Checker checker_counter2) != temp)
+       [
+         if ((array:item Checker checker_counter2) = -1)
+         [
+           array:set Checker checker_counter2 temp
+
+           ask house counter
+           [
+             setxy array:item X_positions temp array:item Y_positions temp
+             set counter counter + 1
+           ]
+         ]
+
+         set checker_counter1 checker_counter1 + 1
+         set checker_counter2 checker_counter2 + 1
+       ]
+
+       [
+         set checker_counter1 checker_counter3 + 1
+       ]
+    ]
+  ]
 
 end
 
@@ -1024,19 +1112,6 @@ end
 
 to construct-houses
 
-  ifelse (ticks < 1)
-  [
-    set temp4 0
-    set temp5 0
-  ]
-
-  [
-    if (temp4 < 40)
-    [
-      set temp4 temp4 + 1
-    ]
-  ]
-
   set counter (count lights + count zebras + count lines + count pedestrians + count cars)
 
   let category1 array:from-list ["house part 1" "house"]
@@ -1048,15 +1123,10 @@ to construct-houses
 
   loop
   [
-     ifelse (counter < (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
+     ifelse (counter <= (count lights + count zebras + count lines + count pedestrians + count cars + temp4))
      [
         ask house counter
         [
-          if (category = 0)
-          [
-            set category (1 + random 6)
-          ]
-
           if (category = 1 and temporary <= 1)
           [
             set shape array:item category1 temporary
@@ -1095,10 +1165,16 @@ to construct-houses
 
           set hidden? false
           set temporary temporary + 1
+
        ]
      ]
 
      [
+       if (temp4 < count houses - 1)
+       [
+          set temp4 temp4 + 1
+       ]
+
        stop
      ]
 
@@ -1172,13 +1248,13 @@ to construct-schools
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-373
+384
 10
-1471
-618
+1461
+626
 -1
 -1
-9.82
+9.635
 1
 10
 1
@@ -1190,8 +1266,8 @@ GRAPHICS-WINDOW
 1
 -55
 55
--30
-30
+-31
+31
 1
 1
 1
