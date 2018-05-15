@@ -1,4 +1,5 @@
 extensions [array]
+
 breed [lights light]
 breed [zebras zebra]
 breed [lines line]
@@ -8,8 +9,10 @@ breed [houses house]
 breed [cars car]
 breed [industries industry]
 breed [pedestrians pedestrian]
-cars-own [speed]
-industries-own [temporary]
+
+industries-own [ temporary ]
+
+cars-own [ speed ]
 
 pedestrians-own
 [
@@ -41,6 +44,8 @@ globals
   ypos
   rprog
 
+  zllprog
+
   x_count
   y_count
   RLstart
@@ -66,7 +71,14 @@ end
 
 to go
 
-  building-roads
+  ifelse (show_progress = "road network" and rprog != 167)
+  [
+    building-roads-pavements
+  ]
+
+  [
+    setting-up-zebras-lights-lines
+  ]
 
   blink-traffic_lights_crossing
 
@@ -115,31 +127,34 @@ to setup-patches
 
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
-  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
+  if (show_progress != "road network")
+  [
+     ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
 
-  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
-  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
+     ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
 
-;  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
+
+     ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+
+     ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
+
+     ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+  ]
 
 end
 
@@ -164,6 +179,11 @@ to setup-traffic_lights
     set color red
     set shape "rectangle"
     set size 4
+
+    if (show_progress = "road network")
+    [
+      set hidden? true
+    ]
   ]
 
   ask light 0  [ setxy -31 15.8   set heading 0  ]
@@ -208,6 +228,11 @@ to setup-zebra_crossing
   [
     set shape "zebra crossing"
     set size 3
+
+    if (show_progress = "road network")
+    [
+      set hidden? true
+    ]
   ]
 
   ask zebra count lights [ setxy -30 15   set heading 0  ]
@@ -252,6 +277,11 @@ to setup-roadlines
   [
     set shape "road line"
     set color white
+
+    if (show_progress = "road network")
+    [
+      set hidden? true
+    ]
   ]
 
     set x_count -55
@@ -318,6 +348,7 @@ end
 
 to setup-pedestrians
 
+  let No_of_pedestrians 0
   create-pedestrians No_of_Pedestrians      ;; Creating Pedestrians
 
   let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
@@ -366,7 +397,7 @@ to setup-pedestrians
 end
 
 to setup-cars
-
+  let No_of_Cars 2
   create-cars No_of_Cars
 
     let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
@@ -484,7 +515,7 @@ to setup-cars
 end
 
 to setup-houses
-
+  let No_of_houses 2
   create-houses No_of_Houses
   [
     set size 5
@@ -578,6 +609,11 @@ to setup-pedestrian_crossing
   [
     set shape "x"
     set color black
+
+    if (show_progress = "road network")
+    [
+      set hidden? true
+    ]
   ]
 
   ask check_x (total     ) [setxy  -31 18]
@@ -795,55 +831,6 @@ to reset-values [pedes_who]
     [
       set limit_crossing 0
     ]
-  ]
-
-end
-
-to-report check_path [pedes_who]
-
-  let temp_value 0
-
-  ask pedestrian pedes_who
-  [
-    if ((xcor = -32 and ycor =  18) or (xcor =  24 and ycor =  18) or (xcor = -32 and ycor = -12 ) or (xcor = 24 and ycor =  -12))
-    [
-      set temp_value 1
-    ]
-
-    if ((xcor = -48 and ycor = -12) or (xcor =   0 and ycor = -12) or (xcor = -48 and ycor = -16) or (xcor =   0 and ycor = -16))
-    [
-      set temp_value 2
-    ]
-
-    if ((xcor = -30 and ycor =  29) or (xcor = -26 and ycor =  29) or (xcor = -26 and ycor =   0) or (xcor = -30 and ycor =   0))
-    [
-      set temp_value 3
-    ]
-
-    if ((xcor =  30 and ycor =  29) or (xcor =  26 and ycor =  29) or (xcor =  26 and ycor =   0) or (xcor =  30 and ycor =   0))
-    [
-      set temp_value 4
-    ]
-  ]
-
-  if (temp_value = 1)
-  [
-    report 1
-  ]
-
-  if (temp_value = 2)
-  [
-    report 2
-  ]
-
-  if (temp_value = 3)
-  [
-    report 3
-  ]
-
-  if (temp_value = 4)
-  [
-    report 4
   ]
 
 end
@@ -1593,7 +1580,7 @@ to finished-house-construction
 end
 
 to setup-industries
-
+  let No_of_Industries 2
   create-industries No_of_Industries
   [
     set hidden? true
@@ -1759,35 +1746,9 @@ to setup-positions
 
 end
 
-to building-roads
+to building-roads-pavements
 
-;  ask patches with [pycor = 13 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = 17 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = -13] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pycor = -17] [set pcolor grey - 1]    ;; Creating Pavement
-;
-;  ask patches with [pxcor = 26 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = 30 ] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = -26] [set pcolor grey - 1]    ;; Creating Pavement
-;  ask patches with [pxcor = -30] [set pcolor grey - 1]    ;; Creating Pavement
-;
-;  ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
-;
-;  ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
-;  ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
-
-  if(rprog < 111)
+  ifelse (rprog < 111)
   [
     ask patches with [(pycor = 15 or pycor = 16 or pycor = 14) and pxcor = array:item xpos rprog ]
     [
@@ -1800,7 +1761,25 @@ to building-roads
     ]
   ]
 
-  if (rprog < 63)
+  [
+     ask patches with [pycor = 15 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = 16 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = 14 ] [set pcolor grey + 1]    ;; Creating Road
+
+     ask patches with [pycor = -15] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = -16] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pycor = -14] [set pcolor grey + 1]    ;; Creating Road
+  ]
+
+  if (rprog > 55 and rprog < 167)
+  [
+    ask patches with [(pycor = 13 or pycor = 17 or pycor = -13 or pycor = -17) and pxcor = array:item xpos (rprog - 56) ]
+    [
+      set pcolor grey - 1
+    ]
+  ]
+
+  ifelse (rprog < 63)
   [
     ask patches with [(pxcor = 27 or pxcor = 28 or pxcor = 29) and pycor = array:item ypos rprog ]
     [
@@ -1812,7 +1791,64 @@ to building-roads
       set pcolor grey + 1
     ]
   ]
+
+  [
+     ask patches with [pxcor = 27 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = 28 ] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = 29 ] [set pcolor grey + 1]    ;; Creating Road
+
+     ask patches with [pxcor = -27] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = -28] [set pcolor grey + 1]    ;; Creating Road
+     ask patches with [pxcor = -29] [set pcolor grey + 1]    ;; Creating Road
+  ]
+
+  if (rprog > 31 and rprog < 95)
+  [
+    ask patches with [(pxcor = 26 or pxcor = 30 or pxcor = -26 or pxcor = -30) and pycor = array:item ypos (rprog - 32)]
+    [
+      set pcolor grey - 1
+    ]
+  ]
+
   set rprog rprog + 1
+
+end
+
+to setting-up-zebras-lights-lines
+
+  if (zllprog >= 0 and zllprog < count lights)
+  [
+    ask light zllprog
+    [
+      set hidden? false
+    ]
+  ]
+
+  if ((zllprog >= count lights) and (zllprog < count lights + count zebras))
+  [
+    ask zebra zllprog
+    [
+      set hidden? false
+    ]
+  ]
+
+  if ((zllprog >= (count lights + count zebras)) and (zllprog < count lights + count zebras + count lines))
+  [
+    ask line zllprog
+    [
+      set hidden? false
+    ]
+  ]
+
+  if ((zllprog >= count lights + count zebras + count lines) and (zllprog < count lights + count zebras + count lines + count checks_xes))
+  [
+    ask check_x (zllprog + count cars + count pedestrians + count houses)
+    [
+      set hidden? false
+    ]
+  ]
+
+  set zllprog zllprog + 1
 
 end
 @#$#@#$#@
@@ -1860,36 +1896,6 @@ NIL
 NIL
 1
 
-SLIDER
-83
-119
-255
-152
-No_of_Cars
-No_of_Cars
-5
-20
-20.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-81
-173
-253
-206
-No_of_Pedestrians
-No_of_Pedestrians
-1
-30
-30.0
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
 174
 18
@@ -1906,36 +1912,6 @@ NIL
 NIL
 NIL
 0
-
-SLIDER
-81
-216
-253
-249
-No_of_Houses
-No_of_Houses
-1
-132
-132.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-80
-260
-252
-293
-No_of_Industries
-No_of_Industries
-1
-24
-24.0
-1
-1
-NIL
-HORIZONTAL
 
 BUTTON
 66
@@ -1972,20 +1948,20 @@ NIL
 0
 
 CHOOSER
-83
-306
-252
-351
-progress
-progress
-"only houses" "only industries" "houses and industries" "road network"
-0
+86
+122
+255
+167
+show_progress
+show_progress
+"none" "only houses" "only industries" "houses and industries" "road network" "all"
+4
 
 SWITCH
-93
-362
-241
-395
+96
+178
+244
+211
 upgrade_houses
 upgrade_houses
 1
@@ -1993,10 +1969,10 @@ upgrade_houses
 -1000
 
 SLIDER
-131
-441
-303
-474
+84
+218
+256
+251
 corruption
 corruption
 0
