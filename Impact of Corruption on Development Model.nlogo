@@ -1,17 +1,20 @@
-extensions [array]
+extensions [array] ;; including the array extension into netlogo
 
-breed [lights light]
-breed [zebras zebra]
-breed [lines line]
-breed [checks_xes check_x]
-breed [houses house]
-breed [cars car]
-breed [industries industry]
-breed [pedestrians pedestrian]
+breed [lights light]           ;; Breeds for traffic lights
+breed [zebras zebra]           ;; Breeds for zebra crossing
+breed [lines line]             ;; Breeds for road lines
+breed [checks_xes check_x]     ;; Breeds for pedestrian crossing
+breed [houses house]           ;; Breeds for houses
+breed [cars car]               ;; Breeds for cars
+breed [industries industry]    ;; Breeds for industries
+breed [pedestrians pedestrian] ;; Breeds for pedestrians
 
-industries-own [ temporary ]
+industries-own       ;; only industry breed variable
+[
+  temporary
+]
 
-cars-own
+cars-own             ;; only cars breed variable
 [
   speed
   turn_value
@@ -20,7 +23,7 @@ cars-own
   car_exception3
 ]
 
-pedestrians-own
+pedestrians-own      ;; only pedestrian breed variable
 [
   turn_value
   limit_crossing
@@ -29,23 +32,23 @@ pedestrians-own
   pedestrian_exception3
 ]
 
-houses-own
+houses-own           ;; only house breed variable
 [
   category
   temporary
 ]
 
-globals
+globals              ;; global variables
 [
-  counter
+  counter            ;; used incase of loops.
 
-  temp
-  temp2
+  temp               ;; variable used in the housing-scheme method
+  temp2              ;; variable used in the housing-scheme method
 
   temp3
   temp4
   temp5
-  temp6
+  temp6              ;; Variable used in the setup-houses method
 
   temp7
   temp8
@@ -56,47 +59,47 @@ globals
 
   zllprog
 
-  x_count
-  y_count
-  RLstart
+  x_count               ;; Variable used in setup-roadlines method.
+  y_count               ;; Variable used in setup-roadlines method.
+  RLstart               ;; Variable used in setup-roadlines method.
 
-  no-of-houses       ; Varible for Monitor
-  no-of-industries   ; Varible for Monitor
+  no-of-houses          ;; Varible for Monitor
+  no-of-industries      ;; Varible for Monitor
 
-  car_violation
-  car_follow
+  car_violation         ;; Varible for Monitor
+  car_follow            ;; Varible for Monitor
 
-  pedestrian_violation
-  pedestrian_follow
+  pedestrian_violation  ;; Varible for Monitor
+  pedestrian_follow     ;; Varible for Monitor
 
 ]
 
 to setup
 
-  clear-all
-  setup-patches          ;; Creating Patches
+  clear-all              ;; Clearing the screen
+  setup-patches          ;; Creating Patches. setting up grass.
 
-  setup-traffic_lights
+  setup-traffic_lights   ;; setting up Traffic lights
 
-  if (corruption = 0 or corruption = 25)
+  if (corruption = 0 or corruption = 25)   ;; Setting up zebra crossing only when value of corruption is 0, 25
   [
-    setup-zebra_crossing
+    setup-zebra_crossing                   ;; Setting up zebra crossing
   ]
 
-  if (corruption != 75)
+  if (corruption != 75)        ;; Road lines will only be created when value of corruption is 0, 25, 50
   [
-    setup-roadlines
+    setup-roadlines            ;; Setting up road lines
   ]
 
-  setup-pedestrians      ;; Creating Pedestrians
-  setup-cars
-  setup-houses
-  setup-pedestrian_crossing
-  setup-industries
-  setup-positions
-  set pedestrian_follow 1
-  set car_follow 1
-  reset-ticks
+  setup-pedestrians           ;; Creating Pedestrians
+  setup-cars                  ;; Creating Cars
+  setup-houses                ;; Creating houses
+  setup-pedestrian_crossing   ;; Creating Pedestrian Crossings (breed checks_xes)
+  setup-industries            ;; Creating Industries
+  setup-positions             ;; Placing fixed positions into arrays for road network progress animation
+  set pedestrian_follow 1     ;; setting value to 1 so plot doesn't gives an error
+  set car_follow 1            ;; setting value to 1 so plot doesn't gives an error
+  reset-ticks                 ;; resetting the value of ticks
 
 end
 
@@ -104,18 +107,18 @@ to go
 
   ifelse ((show_progress = "road network" or show_progress = "all") and rprog != 167)
   [
-    building-roads-pavements
+    building-roads-pavements          ;; Building (animating) the roads and pavements step by step
   ]
 
   [
-    setting-up-zebras-lights-lines
+    setting-up-zebras-lights-lines    ;; Building (animating) the zebra crossing, road lights and road lines after roads and pavements are built
   ]
 
-  blink-traffic_lights_crossing
+  blink-traffic_lights_crossing       ;; Blinking / changing the traffic lights and pedestrian crossing
 
   if (temp4 = count houses)
   [
-    finished-house-construction
+    finished-house-construction       ;; Checking if houses construction is finished
 
     if (temp5 = temp6)
     [
@@ -125,43 +128,38 @@ to go
 
   if (ticks mod 20 = 0 and temp5 != temp6 and (show_progress = "only houses" or show_progress = "houses and industries" or show_progress = "all"))
   [
-    construct-houses
+    construct-houses                 ;; Starting the construction of the houses
   ]
 
   if (ticks mod 30 = 0 and (temp8 != (count industries * 3)) and (show_progress = "only industries" or show_progress = "houses and industries" or show_progress = "all"))
   [
-    construct-industries
+    construct-industries             ;; Starting the construction of the industries
   ]
 
   if (ticks mod 5 = 0)
   [
-    working-industries
+    working-industries              ;; Showing the working / functioning industries
   ]
 
-;  if (corruption != 0)
-;  [
-;    cars-pedestrians-patience
-;  ]
-
-  tick
+  tick        ;; incrementing tick variable. adding 1 into ticks variable.
 
 end
 
 to go-pedestrians
 
-  move-pedestrians    ;; Make the Pedestrian Move on the pavement
+  move-pedestrians    ;; Making the Pedestrian Move on the pavement
 
 end
 
 to go-cars
 
-  move-cars
+  move-cars           ;; Making the Cars move on the road
 
 end
 
 to setup-patches
 
-  ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
+  ask patches [set pcolor green - random-float 0.5]          ;; Creating Grass with different shades of green
 
   if (show_progress = "none" or show_progress = "only houses" or show_progress = "only industries" or show_progress = "houses and industries")
   [
@@ -196,7 +194,7 @@ end
 
 to setup-traffic_lights
 
-  create-lights 16
+  create-lights 16    ;; Method to Create 16 traffic lights
 
   ask lights
   [
@@ -206,9 +204,11 @@ to setup-traffic_lights
 
     if (show_progress = "road network" or show_progress = "all")
     [
-      set hidden? true
+      set hidden? true    ;; value of hidden will be true if building or animation of traffic lights is required
     ]
   ]
+
+  ;; Placing 16 Traffic lights at specific locations with specific headings (orientation)
 
   ask light 0  [ setxy -31 15.8   set heading 0  ]
 
@@ -246,7 +246,7 @@ end
 
 to setup-zebra_crossing
 
-  create-zebras 16
+  create-zebras 16   ;; Creating 16 zebra crossing
 
   ask zebras
   [
@@ -255,9 +255,12 @@ to setup-zebra_crossing
 
     if (show_progress = "road network" or show_progress = "all")
     [
-      set hidden? true
+      set hidden? true    ;; value of hidden will be true if building or animation of zebra crossing is required
     ]
   ]
+
+  ;; Placing 16 zebra crossings at specific locations with specific headings (orientation)
+
 
   ask zebra count lights        [ setxy -30 15     set heading 0  ]
 
@@ -295,7 +298,7 @@ end
 
 to setup-roadlines
 
-  create-lines 174
+  create-lines 174  ;; creating 174 road lines. Road lines are the lines that appear in the middle of the road working as a partition.
 
   ask lines
   [
@@ -304,16 +307,18 @@ to setup-roadlines
 
     if (show_progress = "road network" or show_progress = "all")
     [
-      set hidden? true
+      set hidden? true  ;; value of hidden will be true if building or animation of road lines is required
     ]
   ]
 
-  set x_count -55
-  set y_count 30
-  set counter (count lights + count zebras)
-  set RLstart (count lights + count zebras)
+  set x_count -55                                     ;; global variable
+  set y_count 30                                      ;; global variable
+  set counter (count lights + count zebras)           ;; global variable
+  set RLstart (count lights + count zebras)           ;; global variable
 
-  while [counter <= RLstart + 55]
+  ;; Horizontal road must have a total of 56 road lines and vertical roads must have a total of 31 road lines
+
+  while [counter <= RLstart + 55]     ;; loop for creating the road lines for the upper horizontal road
   [
     ask line counter
     [
@@ -326,7 +331,7 @@ to setup-roadlines
   ]
 
 
-  while [counter <= RLstart + 55 + 56]
+  while [counter <= RLstart + 55 + 56]    ;; loop for creating the road lines for the lower horizontal road
   [
     ask line counter
     [
@@ -339,7 +344,7 @@ to setup-roadlines
   ]
 
 
-  while [counter <= RLstart + 55 + 56 + 31]
+  while [counter <= RLstart + 55 + 56 + 31]    ;; loop for creating the road lines for the left vertical road
   [
     ask line counter
     [
@@ -352,7 +357,7 @@ to setup-roadlines
   ]
 
 
-  while [counter <= RLstart + 55 + 56 + 31 + 31]
+  while [counter <= RLstart + 55 + 56 + 31 + 31]      ;; loop for creating the road lines for the right vertical road
   [
     ask line counter
     [
@@ -370,8 +375,8 @@ to setup-pedestrians
 
   create-pedestrians no_of_pedestrians      ;; Creating Pedestrians
 
-  let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
-  let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
+  let x array:from-list [26 -26 30 -30]     ;; Array of specific x axis
+  let y array:from-list [14 -12 18 -16]     ;; Array of specific y axis
 
   set counter (count lights + count zebras + count lines)      ;; Making counter to identify pedestrians (using counter as who number)
 
@@ -379,7 +384,7 @@ to setup-pedestrians
   [
     set shape "person"
     set size 2
-    set color yellow - 1;orange - 2;brown - 1 ;black
+    set color yellow - 1
   ]
 
   while [counter < (count lights + count zebras + count lines + No_of_Pedestrians)]    ;; Only dealing with pedestrians
@@ -392,14 +397,14 @@ to setup-pedestrians
         set heading one-of [0 180]
         set ycor precision ycor 1
 
-        while [(ycor <= 20 and ycor >= 10) or (ycor <= -10 and ycor >= -20)]
+        while [(ycor <= 20 and ycor >= 10) or (ycor <= -10 and ycor >= -20)]   ;; Loop that makes sure that the pedestrians initially dont appear very near to pedestrian crossings
         [
           setxy xcor random-ycor
         ]
       ]
 
       [
-        setxy random-xcor array:item y random 4
+        setxy random-xcor array:item y random 4   ;; setting value of x and y cordinate for specific pedestrians
         set heading one-of [90 270]
         set xcor precision xcor 1
 
@@ -419,27 +424,26 @@ to setup-cars
 
   create-cars no_of_cars
 
-  let x1 array:from-list [-28.8 27.3]    ;; Array of specific x axis
-  let x2 array:from-list [-27.3 28.8]    ;; Array of specific x axis
-  let y1 array:from-list [-14.3 15.8]    ;; Array of specific y axis
-  let y2 array:from-list [-15.8 14.3]    ;; Array of specific y axis
+  let x1 array:from-list [-28.8 27.3]    ;; Array of specific values x axis
+  let x2 array:from-list [-27.3 28.8]    ;; Array of specific values x axis
+  let y1 array:from-list [-14.3 15.8]    ;; Array of specific values y axis
+  let y2 array:from-list [-15.8 14.3]    ;; Array of specific values y axis
 
-  set counter (count lights + count zebras + count lines + count pedestrians)
+  set counter (count lights + count zebras + count lines + count pedestrians)   ;; Making counter to identify only cars (using counter as who number)
 
   ask cars
   [
     set shape "car top"
     set size 2.6
-    set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink] ;blue
-   ; set speed (random-float 0.5) + 0.1
+    set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
     set speed 0.3
   ]
 
-  while [counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars)]
+  while [counter < (count lights + count zebras + count pedestrians + count lines + No_of_Cars)]   ;; only dealing with cars
   [
     ask car counter
     [
-      ifelse (random 2 = 0)
+      ifelse (random 2 = 0)       ;; placing random cars at specific places using 50 % probability / chance
       [
           ifelse (random 2 = 0)
           [
@@ -501,6 +505,8 @@ to setup-houses
   let No_of_Houses 1
   set counter  1
 
+  ;; creating different number of houses depending upon different value of corruption
+
   if (corruption = 0)
   [
     set No_of_Houses 132
@@ -510,7 +516,7 @@ to setup-houses
   [
     while [counter <= 132]
     [
-      if (random 4 = 0 or random 4 = 1 or random 4 = 2)
+      if (random 4 = 0 or random 4 = 1 or random 4 = 2)   ;; Using Probability. if corruption is 25 then almost there are 75% of the houses which are probable to be built
       [
         set No_of_Houses No_of_Houses + 1
       ]
@@ -523,7 +529,7 @@ to setup-houses
   [
     while [counter <= 132]
     [
-      if (random 4 = 0 or random 4 = 1)
+      if (random 4 = 0 or random 4 = 1)                 ;; Using Probability. if corruption is 50 then almost there are 50% of the houses which are probable to be built
       [
         set No_of_Houses No_of_Houses + 1
       ]
@@ -536,7 +542,7 @@ to setup-houses
   [
     while [counter <= 132]
     [
-      if (random 4 = 0)
+      if (random 4 = 0)                              ;; Using Probability. if corruption is 75 then almost there are 25% of the houses which are probable to be built
       [
         set No_of_Houses No_of_Houses + 1
       ]
@@ -549,6 +555,8 @@ to setup-houses
   [
     set size 5
     set color one-of [red orange brown yellow lime turquoise cyan sky blue violet magenta pink]
+
+    ;; Selecting Different categories of houses depending upon different corruption level
 
     if (corruption = 0)
     [
@@ -571,7 +579,7 @@ to setup-houses
       if (category = 1) [ set size 3 ]
     ]
 
-    set hidden? true
+    set hidden? true  ;; Making the houses invisible to show their construction.
   ]
 
   housing-scheme
@@ -582,7 +590,9 @@ to setup-houses
 
     ask houses
     [
-      set hidden? false
+      set hidden? false   ;; Making the houses visible and not showing their construction
+
+      ;; Different qualities or types of houses
 
       if (category = 1)
       [
@@ -622,17 +632,17 @@ end
 
 to housing-scheme
 
-  let x_pos array:from-list [21 15 9 3 -3 -9 -15 -21 -34 -40 -46 -52]
-  let y_pos array:from-list [30 25 20 10 5 0 -5 -10 -19 -24 -29]
-  let X_positions array:from-list n-values 132[0]
-  let Y_positions array:from-list n-values 132[0]
-  let Checker array:from-list n-values 132[-1]
+  let x_pos array:from-list [21 15 9 3 -3 -9 -15 -21 -34 -40 -46 -52]    ;; fixed x-cordinates for placing the houses in an orderly manner
+  let y_pos array:from-list [30 25 20 10 5 0 -5 -10 -19 -24 -29]         ;; fixed y-cordinates for placing the houses in an orderly manner
+  let X_positions array:from-list n-values 132[0]                        ;; placing x-cordinates in an array to be paired with is corresponding y-cordinates pair
+  let Y_positions array:from-list n-values 132[0]                        ;; placing y-cordinates in an array to be paired with is corresponding x-cordinates pair
+  let Checker array:from-list n-values 132[-1]                           ;; Checker is to make sure that no index get selected twice so no houses overlap eachother
 
   set temp 0
   set temp2 0
   set counter 0
 
-  while [temp < 12]
+  while [temp < 12]              ;; using inner loops to create all possible combinations od fixed x and y cordinates for an equal and ordered placement of houses
   [
     set temp2 0
 
@@ -647,11 +657,11 @@ to housing-scheme
     set temp temp + 1
   ]
 
-  set counter (count lights + count zebras + count lines + count pedestrians + count cars)
+  set counter (count lights + count zebras + count lines + count pedestrians + count cars)   ;; Making counter to identify only houses (using counter as who number)
   set temp 0
   let values 132
 
-  while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses)]
+  while [counter < (count lights + count zebras + count lines + count pedestrians + count cars + count houses)]  ;; only dealing with houses
   [
     let checker_counter1 (count lights + count zebras + count lines + count pedestrians + count cars)
     let checker_counter2 0
@@ -693,9 +703,9 @@ end
 
 to setup-pedestrian_crossing
 
-  let total (count lights + count zebras + count lines + count pedestrians + count cars + count houses)
+  let total (count lights + count zebras + count lines + count pedestrians + count cars + count houses)  ;; calculating the who number from where pedestrian crossing will start
 
-  create-checks_xes 16
+  create-checks_xes 16   ;; Creating 16 checks_xes (breed used for pedestrian crossing)
   [
     set shape "x"
     set color black
@@ -705,6 +715,8 @@ to setup-pedestrian_crossing
       set hidden? true
     ]
   ]
+
+  ;; Placing all pedestrian crossing at specific positions
 
   ask check_x (total     ) [setxy  -31 18]
   ask check_x (total +  1) [setxy  -25 18]
@@ -730,14 +742,14 @@ end
 
 to move-pedestrians
 
-  set counter (count lights + count zebras + count lines)
+  set counter (count lights + count zebras + count lines)    ;; Making counter to identify only pedestrians (using counter as who number)
 
-  while [counter < (count lights + count zebras + count lines + count pedestrians)]
+  while [counter < (count lights + count zebras + count lines + count pedestrians)]    ;; only dealing with pedestrains. Making pedestrians move on the pavements.
   [
     ask pedestrian counter
     [
-      set xcor precision xcor 1
-      set ycor precision ycor 1
+      set xcor precision xcor 1    ;; Rounding off value of xcor to 1 deciamal place for accuracy
+      set ycor precision ycor 1    ;; Rounding off value of ycor to 1 deciamal place for accuracy
 
       ifelse
       (
@@ -768,7 +780,7 @@ to move-pedestrians
           set turn_value 4
         ]
 
-        ifelse (pedestrian_signal counter)
+        ifelse (pedestrian_signal counter)   ;; Checking the signal (traffic lights) ;; Move if the reporter returns True
         [
           if (limit_crossing = 0)
           [
@@ -779,7 +791,7 @@ to move-pedestrians
           forward 0.1
         ]
 
-        [
+        [                                   ;; Stopping the car if reporter return false
           if (limit_crossing = 0)
           [
             turn_pedestrian counter
@@ -795,7 +807,7 @@ to move-pedestrians
       ]
 
       [
-        ifelse (pedestrian_patience counter)
+        ifelse (pedestrian_patience counter)   ;; Checking if the pedestrian walking ahead stops walking the pedestrain behind should stop as well
         [
           forward 0.1
         ]
@@ -804,7 +816,7 @@ to move-pedestrians
           forward 0
         ]
 
-        reset-values counter
+        reset-values counter              ;; Resetting values of different variables
       ]
     ]
 
@@ -813,7 +825,7 @@ to move-pedestrians
 
 end
 
-to turn_pedestrian [pedes_who]
+to turn_pedestrian [pedes_who]           ;; Turning the car
 
   ask pedestrian pedes_who
   [
@@ -920,7 +932,6 @@ to reset-values [pedes_who]
 
     [
       set limit_crossing 0
-      ;set car_exception 0
 
       set pedestrian_exception 0
       set pedestrian_exception2 0
@@ -946,7 +957,7 @@ to-report pedestrian_signal [pedes_who]
     ]
   ]
 
-  if (temp_value = 1)
+  if (temp_value = 1)                                     ;; The following code makes the pedestrians not follow the rules depending upon probability and value of corruption
   [
     ask pedestrian pedes_who
     [
@@ -954,7 +965,7 @@ to-report pedestrian_signal [pedes_who]
       [
         if (corruption = 25)
         [
-          ifelse (random 4 = 0)
+          ifelse (random 4 = 0)                        ;; 25 % probability of pedestrains not following the pedestrain crossing
           [
             set temp_value -1
             set pedestrian_exception 1
@@ -967,7 +978,7 @@ to-report pedestrian_signal [pedes_who]
 
         if (corruption = 50)
         [
-          ifelse (random 4 = 0 or random 4 = 1)
+          ifelse (random 4 = 0 or random 4 = 1)        ;; 50 % probability of pedestrains not following the pedestrain crossing
           [
             set temp_value -1
             set pedestrian_exception 1
@@ -980,7 +991,7 @@ to-report pedestrian_signal [pedes_who]
 
         if (corruption = 75)
         [
-          ifelse (random 4 = 0 or random 4 = 1 or random 4 = 2)
+          ifelse (random 4 = 0 or random 4 = 1 or random 4 = 2)             ;; 75 % probability of pedestrains not following the pedestrain crossing
           [
             set temp_value -1
             set pedestrian_exception 1
@@ -2259,10 +2270,10 @@ ticks
 30.0
 
 BUTTON
-26
-16
-89
-49
+35
+21
+98
+54
 NIL
 setup
 NIL
@@ -2276,10 +2287,10 @@ NIL
 1
 
 BUTTON
-116
-17
-179
-50
+125
+22
+188
+55
 NIL
 go
 T
@@ -2293,10 +2304,10 @@ NIL
 0
 
 BUTTON
-8
-67
-122
-100
+17
+72
+131
+105
 NIL
 go-pedestrians
 T
@@ -2310,10 +2321,10 @@ NIL
 0
 
 BUTTON
-137
-68
-210
-101
+146
+73
+219
+106
 NIL
 go-cars
 T
@@ -2327,20 +2338,20 @@ NIL
 0
 
 CHOOSER
-17
-114
-186
-159
+26
+119
+195
+164
 show_progress
 show_progress
 "none" "only houses" "only industries" "houses and industries" "road network" "all"
-3
+0
 
 SLIDER
-220
-16
-392
-49
+246
+26
+418
+59
 corruption
 corruption
 0
@@ -2352,40 +2363,40 @@ NIL
 HORIZONTAL
 
 SLIDER
-221
-58
-393
-91
+247
+68
+419
+101
 no_of_pedestrians
 no_of_pedestrians
 4
 30
-30.0
+26.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-219
-103
-391
-136
+247
+113
+419
+146
 no_of_cars
 no_of_cars
-1
+4
 30
-30.0
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-5
-167
-93
-212
+57
+435
+145
+480
 NIL
 no-of-houses
 17
@@ -2393,10 +2404,10 @@ no-of-houses
 11
 
 MONITOR
-108
-168
-209
-213
+280
+439
+381
+484
 NIL
 no-of-industries
 17
@@ -2404,10 +2415,10 @@ no-of-industries
 11
 
 MONITOR
-221
-145
-304
-190
+21
+215
+104
+260
 NIL
 car_violation
 17
@@ -2415,10 +2426,10 @@ car_violation
 11
 
 MONITOR
-325
-145
-395
-190
+117
+214
+187
+259
 NIL
 car_follow
 17
@@ -2426,10 +2437,10 @@ car_follow
 11
 
 MONITOR
-4
-221
-129
-266
+269
+212
+394
+257
 NIL
 pedestrian_violation
 17
@@ -2437,10 +2448,10 @@ pedestrian_violation
 11
 
 MONITOR
-137
-221
-248
-266
+276
+162
+387
+207
 NIL
 pedestrian_follow
 17
@@ -2448,11 +2459,11 @@ pedestrian_follow
 11
 
 PLOT
-44
-276
-204
-396
-plot 1
+17
+265
+198
+390
+% of cars violating rules
 time
 % of cars violating rules
 0.0
@@ -2466,11 +2477,11 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot (car_violation * 100) / car_follow"
 
 PLOT
-226
-280
-386
-400
-plot 2
+237
+264
+422
+389
+% of pedestrians violating rules
 time
 pedestrian violation of rules in %
 0.0
@@ -2484,11 +2495,11 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot (pedestrian_violation * 100) / pedestrian_follow"
 
 PLOT
-37
-415
-197
-535
-plot 3
+13
+492
+194
+622
+% of houses being built
 time
 % houses
 0.0
@@ -2502,11 +2513,11 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot (no-of-houses * 100) / 132"
 
 PLOT
-221
-417
-381
-537
-plot 4
+237
+493
+419
+623
+% of industries being built
 time
 % of industries
 0.0
