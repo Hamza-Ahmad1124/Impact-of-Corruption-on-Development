@@ -2,12 +2,17 @@ breed [persons person]
 breed [pedestrians pedestrian]
 breed [cars car]
 breed [lights light]
+breed [zebras zebra]
+breed [lines line]
 extensions [array]
 globals
 [
   counter
   temp
   temp2
+  temp3
+  x_count
+  y_count
 ]
 
 to setup
@@ -17,6 +22,8 @@ to setup
   setup-cars
   setup-traffic_lights
   setup-patches        ;; Creating Patches
+  setup-zebra_crossing
+  setup-roadlines
   reset-ticks
 end
 
@@ -24,13 +31,14 @@ to go
 
   move-pedestrians    ;; Make the Pedestrian Move on the pavement
   move-cars
+  blink-traffic_lights
   tick
 
 end
 
 to setup-patches
 
-if (corruption = 0 and extremist = 5)
+if (corruption = 0)
 [
   ask patches [set pcolor green - random-float 0.5]    ;; Creating Grass with different shades of green
 
@@ -127,6 +135,8 @@ to setup-pedestrians
     let x array:from-list [26 -26 30 -30]    ;; Array of specific x axis
     let y array:from-list [14 -12 18 -16]    ;; Array of specific y axis
 
+    set x array:from-list [26 -26 30 -30]
+
      set counter 50      ;; Making counter to identify pedestrians (using counter as who number)
 
  ask pedestrians
@@ -147,12 +157,36 @@ to setup-pedestrians
             setxy array:item x random 4 random-ycor   ;; setting value of x and y cordinate for specific pedestrians
             facexy xcor random-ycor          ;; making pedestrians to face specific location for directed movement
             set ycor precision ycor 1
+
+            loop
+            [
+              ifelse ((ycor <= 20 and ycor >= 10) or (ycor <= -10 and ycor >= -20))
+              [
+                setxy xcor random-ycor
+              ]
+
+              [
+                stop
+              ]
+            ]
           ]
 
           [
             setxy random-xcor array:item y random 4
             facexy random-xcor ycor
             set xcor precision xcor 1
+
+            loop
+            [
+              ifelse ((xcor <= 33 and xcor >= 23) or (xcor <= -23 and xcor >= -33))
+              [
+                setxy random-xcor ycor
+              ]
+
+              [
+                stop
+              ]
+            ]
           ]
         ]
       ]
@@ -171,7 +205,7 @@ to move-pedestrians
  ask pedestrians
  [
 
-    forward 0.1  ;; move in steps not pixels
+    forward 0.1  ;; move in steps not pixels not patches
  ]
 
  set counter 50
@@ -227,14 +261,14 @@ to setup-cars
   [
     set shape "car top"
     set size 2.6
-    set color red
+    set color blue
     setxy random-xcor random-ycor
     set heading 0
   ]
 
    loop
    [
-      ifelse counter >= 54 and counter < 59
+      ifelse counter >= 54 and counter <= 58
       [
         ask car counter
         [
@@ -243,16 +277,38 @@ to setup-cars
               ifelse (random 2 = 0)
               [
                  setxy array:item x1 random 2 random-ycor
-                ;; facexy xcor 30
                  set heading 0
                  set ycor precision ycor 1
+
+                 loop
+                 [
+                   ifelse ((ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5))
+                   [
+                     setxy xcor random-ycor
+                   ]
+
+                   [
+                     stop
+                   ]
+                 ]
               ]
 
               [
-                 setxy array:item x2 random 2  random-ycor
-                 ;;facexy xcor -30
+                 setxy array:item x2 random 2 random-ycor
                  set heading 180
                  set ycor precision ycor 1
+
+                 loop
+                 [
+                   ifelse ((ycor <= 25 and ycor >= 5) or (ycor >= -25 and ycor <= -5))
+                   [
+                     setxy xcor random-ycor
+                   ]
+
+                   [
+                     stop
+                   ]
+                 ]
               ]
           ]
 
@@ -260,16 +316,39 @@ to setup-cars
              ifelse (random 2 = 0)
              [
                 setxy random-xcor array:item y1 random 2
-                ;;facexy 55 ycor
                 set heading 90
                 set xcor precision xcor 1
+
+                loop
+                 [
+                   ifelse ((xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18))
+                   [
+                     setxy random-xcor ycor
+                   ]
+
+                   [
+                     stop
+                   ]
+                ]
              ]
+
 
              [
                 setxy random-xcor array:item y2 random 2
-                ;;facexy -55 ycor
                 set heading 270
                 set xcor precision xcor 1
+
+                loop
+                 [
+                   ifelse ((xcor <= 38 and xcor >= 18) or (xcor >= -38 and xcor <= -18))
+                   [
+                     setxy random-xcor ycor
+                   ]
+
+                   [
+                     stop
+                   ]
+                 ]
              ]
           ]
         ]
@@ -281,6 +360,7 @@ to setup-cars
 
       set counter counter + 1
    ]
+
 end
 
 to move-cars
@@ -293,35 +373,63 @@ to move-cars
     [
       ask car counter
       [
-        ifelse (heading = 0 and (int ycor = 10 or int ycor = -20))
+        ifelse (heading = 0 and (int ycor = 10 or int ycor = -19))
         [
-          forward 0
-          set temp2 1
-          forward 0.5
-        ]
-
-        [
-          ifelse (heading = 180 and (int ycor = -10 or int ycor = 20))
+          ifelse (signal 1)
           [
-            forward 0
-            set temp2 2
             forward 0.5
           ]
 
           [
-            ifelse (heading = 90 and (int xcor = 23 or int xcor = -33))
+            forward 0
+          ]
+
+          set temp2 1
+        ]
+
+        [
+          ifelse (heading = 180 and (int ycor = -10 or int ycor = 19))
+          [
+            ifelse (signal 2)
             [
-              forward 0
-              set temp2 3
               forward 0.5
             ]
 
             [
-              ifelse (heading = 270 and (int xcor = 33 or int xcor = -23))
+              forward 0
+            ]
+
+            set temp2 2
+          ]
+
+          [
+            ifelse (heading = 90 and (int xcor = 23 or int xcor = -32))
+            [
+              ifelse (signal 3)
+              [
+                forward 0.5
+              ]
+
               [
                 forward 0
+              ]
+
+              set temp2 3
+            ]
+
+            [
+              ifelse (heading = 270 and (int xcor = 32 or int xcor = -23))
+              [
+                ifelse (signal 4)
+                [
+                  forward 0.5
+                ]
+
+                [
+                  forward 0
+                ]
+
                 set temp2 4
-                forward 0.5
               ]
 
               [
@@ -490,6 +598,358 @@ to turn-car [carwho]
   ]
 
 end
+
+to blink-traffic_lights
+
+  ifelse (temp3 / 100 <= 1)
+  [
+    ask light 59
+    [
+      set color lime
+    ]
+
+    ask light 63
+    [
+      set color lime
+    ]
+
+    ask light 67
+    [
+      set color lime
+    ]
+
+    ask light 71
+    [
+      set color lime
+    ]
+
+    if (temp3 >= 97)
+    [
+      ask lights
+      [
+        set color red
+      ]
+    ]
+
+    set temp3 temp3 + 1
+  ]
+
+  [
+    ifelse (temp3 / 100 <= 2)
+    [
+      ask light 60
+      [
+        set color lime
+      ]
+
+      ask light 64
+      [
+        set color lime
+      ]
+
+      ask light 68
+      [
+        set color lime
+      ]
+
+      ask light 72
+      [
+        set color lime
+      ]
+
+      set temp3 temp3 + 1
+
+      if (temp3 >= 197)
+      [
+        ask lights
+        [
+          set color red
+        ]
+      ]
+    ]
+
+    [
+      ifelse (temp3 / 100 <= 3)
+      [
+        ask light 61
+        [
+          set color lime
+        ]
+
+        ask light 65
+        [
+          set color lime
+        ]
+
+        ask light 69
+        [
+          set color lime
+        ]
+
+        ask light 73
+        [
+          set color lime
+        ]
+
+        if (temp3 >= 297)
+        [
+          ask lights
+          [
+            set color red
+          ]
+        ]
+
+        set temp3 temp3 + 1
+      ]
+
+      [
+        ifelse (temp3 / 100 <= 4)
+        [
+          ask light 62
+          [
+            set color lime
+          ]
+
+          ask light 66
+          [
+            set color lime
+          ]
+
+          ask light 70
+          [
+            set color lime
+          ]
+
+          ask light 74
+          [
+            set color lime
+          ]
+
+          if (temp3 >= 397)
+          [
+            ask lights
+            [
+              set color red
+            ]
+          ]
+
+          set temp3 temp3 + 1
+        ]
+
+        [
+          set temp3 1
+        ]
+      ]
+    ]
+  ]
+
+end
+
+to setup-zebra_crossing
+
+  create-zebras 16
+
+  ask zebras
+  [
+    set shape "zebra crossing"
+    set size 3
+  ]
+
+  ask zebra 75 [ setxy -30 15   set heading 0  ]
+
+  ask zebra 76 [ setxy -28 17   set heading 90 ]
+
+  ask zebra 77 [ setxy -26 15   set heading 0  ]
+
+  ask zebra 78 [ setxy -28 13   set heading 90 ]
+
+  ask zebra 79 [ setxy 26 15    set heading 0  ]
+
+  ask zebra 80 [ setxy 28 17    set heading 90 ]
+
+  ask zebra 81 [ setxy 30 15    set heading 0  ]
+
+  ask zebra 82 [ setxy 28 13    set heading 90 ]
+
+  ask zebra 83 [ setxy -30 -15  set heading 0  ]
+
+  ask zebra 84 [ setxy -28 -13  set heading 90 ]
+
+  ask zebra 85 [ setxy -26 -15  set heading 0  ]
+
+  ask zebra 86 [ setxy -28 -17  set heading 90 ]
+
+  ask zebra 87 [ setxy 26 -15   set heading 0  ]
+
+  ask zebra 88 [ setxy 28 -13   set heading 90 ]
+
+  ask zebra 89 [ setxy 30 -15   set heading 0  ]
+
+  ask zebra 90 [ setxy 28 -17   set heading 90 ]
+
+end
+
+to setup-roadlines
+
+  create-lines 174
+
+  ask lines
+  [
+    set shape "road line"
+    set color white
+  ]
+
+    set x_count -55
+    set y_count 30
+    set counter 91
+
+    loop
+    [
+        ifelse (counter <= 91 + 55)
+        [
+          ask line counter
+          [
+            setxy x_count 15
+            set x_count x_count + 2
+            set heading 0
+          ]
+        ]
+
+        [
+          ifelse (counter <= 91 + 55 + 56)
+          [
+            ask line counter
+            [
+              set x_count x_count - 2
+              setxy x_count -15
+              set heading 0
+            ]
+          ]
+
+          [
+            ifelse (counter <= 91 + 55 + 56 + 31)
+            [
+              ask line counter
+              [
+                setxy -28 y_count
+                set y_count y_count - 2
+                set heading 90
+              ]
+            ]
+
+            [
+              ifelse (counter <= 91 + 55 + 56 + 31 + 31)
+              [
+                ask line counter
+                [
+                  set y_count y_count + 2
+                  setxy 28 y_count
+                  set heading 90
+                ]
+              ]
+
+              [
+                stop
+              ]
+            ]
+          ]
+        ]
+
+      set counter counter + 1
+    ]
+
+
+end
+
+to-report signal [special]
+
+  let rand array:from-list [62 60 59 61]
+
+  if (special = 1)
+  [
+    ask light array:item rand 0
+    [
+      if (color = red)
+      [
+        set special 0
+      ]
+    ]
+
+    ifelse (special = 0)
+    [
+      report false
+    ]
+
+    [
+      report true
+    ]
+  ]
+
+  if (special = 2)
+  [
+    ask light array:item rand 1
+    [
+      if (color = red)
+      [
+        set special 0
+      ]
+    ]
+
+    ifelse (special = 0)
+    [
+      report false
+    ]
+
+    [
+      report true
+    ]
+  ]
+
+  if (special = 3)
+  [
+    ask light array:item rand 2
+    [
+      if (color = red)
+      [
+        set special 0
+      ]
+    ]
+
+    ifelse (special = 0)
+    [
+      report false
+    ]
+
+    [
+      report true
+    ]
+  ]
+
+  if (special = 4)
+  [
+    ask light array:item rand 3
+    [
+      if (color = red)
+      [
+        set special 0
+      ]
+    ]
+
+    ifelse (special = 0)
+    [
+      report false
+    ]
+
+    [
+      report true
+    ]
+  ]
+
+end
+
+to patience
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 373
@@ -562,21 +1022,6 @@ corruption
 0
 5
 0.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-72
-218
-244
-251
-extremist
-extremist
-0
-5
-5.0
 1
 1
 NIL
@@ -823,6 +1268,11 @@ true
 0
 Rectangle -7500403 true true 120 90 180 210
 
+road line
+true
+0
+Rectangle -7500403 true true 0 135 300 165
+
 sheep
 false
 15
@@ -953,6 +1403,20 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
+zebra crossing
+true
+0
+Rectangle -1 true false 90 270 195 300
+Rectangle -16777216 true false 90 0 195 30
+Rectangle -1 true false 90 30 195 60
+Rectangle -16777216 true false 90 60 195 90
+Rectangle -1 true false 90 90 195 120
+Rectangle -16777216 true false 90 120 195 150
+Rectangle -1 true false 90 150 195 180
+Rectangle -16777216 true false 90 180 195 210
+Rectangle -1 true false 90 210 195 240
+Rectangle -16777216 true false 90 240 195 270
 @#$#@#$#@
 NetLogo 6.0
 @#$#@#$#@
